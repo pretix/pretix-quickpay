@@ -1,0 +1,5 @@
+recursive-include pretix_unzer/static *
+recursive-include pretix_unzer/templates *
+recursive-include pretix_unzer/locale *
+include LICENSE
+exclude .gitlab-ci.yml
