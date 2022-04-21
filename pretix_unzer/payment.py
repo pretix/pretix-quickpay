@@ -1,14 +1,11 @@
-import base64
-import json
-
-import requests
+import hashlib
+import importlib
+from quickpay_api_client import QPClient
 from collections import OrderedDict
 from decimal import Decimal
 from typing import Dict, Any, Union
-from django import forms
 from django.conf import settings
 from django.http import HttpRequest
-from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
@@ -17,7 +14,7 @@ from pretix.base.forms import SecretKeySettingsField
 from pretix.base.models import Order, Event, OrderPayment, OrderRefund
 from pretix.base.payment import BasePaymentProvider
 from pretix.base.settings import SettingsSandbox
-from pretix.multidomain.urlreverse import eventreverse
+from pretix.multidomain.urlreverse import eventreverse, build_absolute_uri
 
 
 class UnzerSettingsHolder(BasePaymentProvider):
@@ -25,6 +22,7 @@ class UnzerSettingsHolder(BasePaymentProvider):
     verbose_name = _('Unzer')
     is_enabled = False
     is_meta = True
+    payment_methods_settingsholder = []
 
     def __init__(self, event: Event):
         super().__init__(event)
@@ -36,132 +34,126 @@ class UnzerSettingsHolder(BasePaymentProvider):
         allcountries.insert(0, ('', _('Select country')))
 
         fields = [
-            ('username',
-             forms.CharField(
-                 label=_('User name'),
-                 validators=(),
-                 help_text=_('ToDo'),
-             )),
-            ('password',
+            ('apikey',
              SecretKeySettingsField(
-                 label=_('Password'),
+                 label=_('Api-Key'),
                  validators=(),
-                 help_text=_('ToDo'),
+                 help_text=_('Your Unzer API-key for an API user, '
+                             'that is configured to have rights to access /payments functionality only'),
              )),
         ]
         d = OrderedDict(
-            fields + list(super().settings_form_fields.items())  # ToDo: add payment-methods
+            fields +
+            self.payment_methods_settingsholder +
+            list(super().settings_form_fields.items())
         )
 
         d.move_to_end('_enabled', last=False)
-        return d  # ToDo
+        return d
 
 
 class UnzerMethod(BasePaymentProvider):
     identifier = ""
     method = ""
-    verbose_name = ""  # ToDo
-    # API:
-    api_url = "api.unzerdirect.com/payments"
-    version = "v10"
+    verbose_name = ""
 
     def __init__(self, event: Event):
         super().__init__(event)
         self.settings = SettingsSandbox('payment', 'unzer', event)
 
-    @property
-    def headers(self):
-        auth_token = ":".join([self.settings.get("username"), self.settings.get("password")])
-        auth_token = auth_token.encode("UTF-8")
-        auth_token = base64.b64encode(auth_token)
-        return {
-            "Accept-Version": self.version,
-            "Authorization": "Basic " + str(auth_token),
-        }
+    def _init_client(self):
+        auth_token = ":{0}".format(self.settings.get("apikey"))
+        client = QPClient(auth_token)
+        return client
 
     @property
     def settings_form_fields(self):
         return {}
 
     @property
-    def is_enabled(self) -> bool:  # ToDo: Check
-        return self.settings.get('_enabled', as_type=bool) and self.settings.get('method_{}'.format(self.method))
+    def is_enabled(self) -> bool:
+        if self.type == "meta":
+            module = importlib.import_module(
+                __name__.replace("unzer", self.identifier.split("_")[0]).replace(
+                    ".payment", ".paymentmethods"
+                )
+            )
+            for method in list(
+                    filter(
+                        lambda d: d["type"] in ["meta", "scheme"], module.payment_methods
+                    )
+            ):
+                if self.settings.get("_enabled", as_type=bool) and self.settings.get(
+                        "method_{}".format(method["method"]), as_type=bool
+                ):
+                    return True
+            return False
+        else:
+            return self.settings.get("_enabled", as_type=bool) and self.settings.get(
+                "method_{}".format(self.method), as_type=bool
+            )
 
     def is_allowed(self, request: HttpRequest, total: Decimal = None) -> bool:
         return super().is_allowed(request, total)
 
     def payment_form_render(self, request: HttpRequest, total: Decimal, order: Order = None) -> str:
-        template = get_template("pretix_unzer/checkout_payment_form.html")  # ToDo: followup
+        template = get_template("pretix_unzer/checkout_payment_form.html")
         return template.render()
 
     def payment_is_valid_session(self, request: HttpRequest) -> bool:
-        return False  # ToDo
+        return True
 
     def checkout_prepare(self, request: HttpRequest, cart: Dict[str, Any]) -> Union[bool, str]:
-        # Create Payment at Unzer:
-        basket = {}
-        for i in cart.get("positions"):
-            basket[i] = {
-                "qty": i["count"],
-                "item_no": i,  # ToDo: is this meant to be like an index within the basket or a unique item number?
-                "item_name": i,
-                "item_price": i["total"] / i["count"],  # ToDo: is this what is actually wanted?
-                "vat_rate": "ToDo",  # ToDo: where do I get the vat rate here?
-            }
-        payment_data = {
-            "currency": self.event.currency,
-            "order_id": "",  # ToDo: is this our order number? where is it at this point?
-            "basket": basket,
-        }
-        unzer_payment = requests.post(self.api_url, headers=self.headers, data=payment_data)
-        # ToDo: check answer and save ID from unzer_payment globally (to payment? order? what do we have for that?)
-        # ------------------------------
-        # Create Link for Authorization:
-        link_data = {
-            "amount": cart.get("total"),
-            "continue_url": "",
-            "cancel_url": "",
-            "callback_url": "",
-            "payment_methods": "",
-        }
-        unzer_payment_id = "ToDo"  # ToDo
-        link_url = "/".join([
-            self.api_url,
-            unzer_payment_id,
-            "link",
-        ])
-        link_response = requests.put(url=link_url, headers=self.headers, data=link_data)
-        # Parse Response for Link:
-        link_json = link_response.json()
-        link_dict = json.loads(link_json)
-        # Redirect customer:
-        return link_dict["url"]
+        return True
 
     def checkout_confirm_render(self, request, order: Order = None) -> str:
-        template = get_template("pretix_unzer/checkout_payment_confirm.html")  # ToDo: display info in template
+        template = get_template("pretix_unzer/checkout_payment_confirm.html")
         ctx = {"request": request}
         return template.render(ctx)
 
     def execute_payment(self, request: HttpRequest, payment: OrderPayment) -> str:
-        # Capture Payment:
-        unzer_payment_id = "ToDo"  # ToDo
-        url = "/".join([
-            self.api_url,
-            unzer_payment_id,
-            "capture",
-        ])
-        capture_headers = self.headers
-        capture_headers["QuickPay-Callback-Url"] = "ToDo"  # ToDo: create URLs (file)
-        result = requests.post(url, headers=capture_headers)
-        self.process_result(result)
-        return redirect(
-            eventreverse(
-                self.event,
-                "presale:event.order",
-                kwargs={"order": payment.order.code, "secret": payment.order.secret},
-            )
-            + ("?paid=yes" if payment.order.status == Order.STATUS_PAID else "")
+        client = self._init_client()
+        payment_data = {
+            "currency": self.event.currency,
+            "order_id": payment.full_id,  # ToDo: maybe set order id, but needs to be 4 - 20 characters
+        }
+        unzer_payment = client.post('/payments', body=payment_data)
+        # Create Link for Authorization:
+        ident = self.identifier.split("_")[0]
+        return_url = build_absolute_uri(
+            self.event,
+            "plugins:pretix_{}:return".format(ident),
+            kwargs={
+                "order": payment.order.code,
+                "hash": hashlib.sha1(payment.order.secret.lower().encode()).hexdigest(),
+                "payment": payment.pk,
+                "payment_provider": ident,
+            },
         )
+        callback_url = build_absolute_uri(
+            self.event,
+            "plugins:pretix_{}:callback".format(ident),
+            kwargs={
+                "order": payment.order.code,
+                "hash": hashlib.sha1(payment.order.secret.lower().encode()).hexdigest(),
+                "payment": payment.pk,
+                "payment_provider": ident,
+            },
+        )
+        link_data = {
+            "amount": self._decimal_to_int(payment.amount),
+            "continue_url": return_url,
+            "cancel_url": return_url,
+            "callback_url": callback_url,
+            "payment_methods": self.method,
+        }
+        link = client.put('/payments/%s/link' % unzer_payment['id'], body=link_data)
+        info = unzer_payment
+        info['link'] = link['url']
+        payment.info_data = [info]
+        payment.save(update_fields=["info"])
+        # Redirect customer:
+        return link['url']
 
     def api_payment_details(self, payment: OrderPayment):
         return None  # ToDo
@@ -195,5 +187,43 @@ class UnzerMethod(BasePaymentProvider):
         places = settings.CURRENCY_PLACES.get(self.event.currency, 2)
         return int(amount * 10 ** places)
 
-    def process_result(self, result):
-        pass  # ToDo
+    def handle_callback(self, request: HttpRequest, payment: OrderPayment):
+        # ToDo: validate "QuickPay-Checksum-Sha256"
+        print("callback")
+        # prev_payment_state = payment.info_data.get("state")
+        # new_payment_state = request.POST.get("state")
+        # if new_payment_state != prev_payment_state:
+        # handle state change ToDo: possible "initial, pending, new, rejected, processed" in new function
+        #    print(prev_payment_state, "=>", new_payment_state)
+        # Save newest payment object to info
+        payment.info_data = request.POST
+        payment.save(update_fields=["info"])
+
+    def capture_payment(self, payment: OrderPayment):
+        client = self._init_client()
+        current_payment_info = payment.info_data  # ToDo: Check order_id == payment.full:id
+        new_payment_info = client.get('/payments/%s' % current_payment_info.get("id"))
+        payment.info_data = new_payment_info
+        if new_payment_info.get("accepted") and new_payment_info.get("state") == "new":
+            # ToDo: Check if payment and authorization amounts are the same
+            ident = self.identifier.split("_")[0]
+            callback_url = build_absolute_uri(
+                self.event,
+                "plugins:pretix_{}:callback".format(ident),
+                kwargs={
+                    "order": payment.order.code,
+                    "hash": hashlib.sha1(payment.order.secret.lower().encode()).hexdigest(),
+                    "payment": payment.pk,
+                    "payment_provider": ident,
+                },
+            )
+            capture = client.post(
+                '/payments/%s/capture' % payment.info_data.get("id"),
+                headers={"QuickPay-Callback-Url": callback_url},
+                body={"amount": self._decimal_to_int(payment.amount)},
+            )
+            payment.info_data = capture
+            if capture.get("state") == "processed" and capture.get("balance") == self._decimal_to_int(payment.amount):
+                payment.confirm()  # ToDo: handle in same function as callback
+        payment.save(update_fields=["info"])
+        # ToDo: check and save payment state

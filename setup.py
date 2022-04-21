@@ -34,7 +34,7 @@ setup(
     author="Phin Wolkwitz",
     author_email="wolkwitz@rami.io",
     license="Apache",
-    install_requires=[],
+    install_requires=["quickpay-api-client==2.0.*"],
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
     cmdclass=cmdclass,
