@@ -115,7 +115,7 @@ class UnzerMethod(BasePaymentProvider):
         client = self._init_client()
         payment_data = {
             "currency": self.event.currency,
-            "order_id": payment.full_id,  # ToDo: maybe set order id, but needs to be 4 - 20 characters
+            "order_id": payment.full_id,
         }
         unzer_payment = client.post('/payments', body=payment_data)
         # Create Link for Authorization:
@@ -156,16 +156,34 @@ class UnzerMethod(BasePaymentProvider):
         return link['url']
 
     def api_payment_details(self, payment: OrderPayment):
-        return None  # ToDo
+        return {
+            "id": payment.info_data.get("id", None),
+        }
 
     def matching_id(self, payment: OrderPayment):
-        return None  # ToDo
+        return payment.info_data.get("id", None)
 
     def payment_control_render(self, request: HttpRequest, payment: OrderPayment) -> str:
-        return ""  # ToDo
+        template = get_template("pretix_unzer/control.html")
+        ctx = {
+            "request": request,
+            "event": self.event,
+            "settings": self.settings,
+            "payment_info": payment.info_data,
+            "payment": payment,
+            "method": self.method,
+            "provider": self,
+        }
+        return template.render(ctx)
 
     def payment_control_render_short(self, payment: OrderPayment) -> str:
-        return ""  # ToDo
+        payment_info = payment.info_data
+        r = payment_info.get("id", "")
+        if payment_info.get("acquirer"):
+            if r:
+                r += " / "
+            r += payment_info.get("acquirer")
+        return r
 
     def payment_refund_supported(self, payment: OrderPayment) -> bool:
         return False  # ToDo
