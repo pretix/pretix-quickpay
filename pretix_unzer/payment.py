@@ -231,10 +231,13 @@ class UnzerMethod(BasePaymentProvider):
     def _handle_state_change(self, payment: OrderPayment):
         state = payment.info_data.get("state")
         # if state == "rejected":
-        # payment.fail()
+        # payment.fail() # ToDo: link is reusable, so, when is a payment finally failed in quickpay, never?
         if state == "processed":
             if payment.info_data.get("balance") == self._decimal_to_int(payment.amount):  # ToDo: what about else?
-                payment.confirm()
+                if payment.info_data.get("test_mode") == payment.order.testmode:
+                    payment.confirm()
+                else:
+                    payment.fail()
 
     def handle_callback(self, request: HttpRequest, payment: OrderPayment):
         # ToDo: validate "QuickPay-Checksum-Sha256"
@@ -284,8 +287,4 @@ class UnzerMethod(BasePaymentProvider):
                 payment.info_data = capture
                 payment.save(update_fields=["info"])
 
-                if capture.get("state") == "processed" and capture.get("balance") == self._decimal_to_int(
-                        payment.amount):
-                    payment.confirm()
-            else:
-                self._handle_state_change(payment)
+            self._handle_state_change(payment)
