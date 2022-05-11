@@ -1,5 +1,7 @@
 import hashlib
 import importlib
+import json
+from django.utils.timezone import now
 from quickpay_api_client import QPClient
 from collections import OrderedDict
 from decimal import Decimal
@@ -176,7 +178,7 @@ class UnzerMethod(BasePaymentProvider):
 
     def payment_control_render_short(self, payment: OrderPayment) -> str:
         payment_info = payment.info_data
-        r = payment_info.get("id", "")
+        r = str(payment_info.get("id", ""))
         if payment_info.get("acquirer"):
             if r:
                 r += " / "
@@ -184,16 +186,39 @@ class UnzerMethod(BasePaymentProvider):
         return r
 
     def payment_refund_supported(self, payment: OrderPayment) -> bool:
-        return False  # ToDo
+        if "id" in payment.info_data and "link" in payment.info_data and "amount" in payment.info_data.get("link"):
+            return True
+        return False
 
     def payment_partial_refund_supported(self, payment: OrderPayment) -> bool:
-        return False  # ToDo
+        if "id" in payment.info_data and "link" in payment.info_data and "amount" in payment.info_data.get("link"):
+            return True
+        return False
 
     def execute_refund(self, refund: OrderRefund):
-        pass  # ToDo
+        client = self._init_client()
+        status, body, headers = client.post('/payments/%s/refund' % refund.payment.info_data.get("id"),
+                                            body={"amount": self._decimal_to_int(refund.amount)},
+                                            raw=True)
+        # OK
+        if status == 202:
+            refund.info_data = json.loads(body)
+            refund.save(update_fields=["info"])
+            refund.done()
+        # Error || Invalid parameters or Not authorized
+        elif status == 400 or status == 403:
+            refund.state = OrderRefund.REFUND_STATE_FAILED
+            refund.execution_date = now()
+            refund.info_data = json.loads(body)
+            refund.save(update_fields=["state", "execution_date", "info"])
+        else:
+            refund.state = OrderRefund.REFUND_STATE_FAILED
+            refund.execution_date = now()
+            refund.info_data = json.loads(body)
+            refund.save(update_fields=["state", "execution_date", "info"])
 
     def refund_control_render(self, request: HttpRequest, refund: OrderRefund) -> str:
-        return ""  # ToDo
+        return self.payment_control_render(request, refund)
 
     def _amount_to_decimal(self, cents):
         places = settings.CURRENCY_PLACES.get(self.event.currency, 2)
