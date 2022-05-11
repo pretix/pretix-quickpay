@@ -148,9 +148,7 @@ class UnzerMethod(BasePaymentProvider):
             "payment_methods": self.method,
         }
         link = client.put('/payments/%s/link' % unzer_payment['id'], body=link_data)
-        info = unzer_payment
-        info['link'] = link['url']
-        payment.info_data = [info]
+        payment.info_data = client.get('/payments/%s' % unzer_payment['id'])
         payment.save(update_fields=["info"])
         # Redirect customer:
         return link['url']
@@ -207,19 +205,21 @@ class UnzerMethod(BasePaymentProvider):
 
     def _handle_state_change(self, payment: OrderPayment):
         state = payment.info_data.get("state")
-        if state == "rejected":
-            payment.fail()
-        elif state == "processed":
+        # if state == "rejected":
+        # payment.fail()
+        if state == "processed":
             if payment.info_data.get("balance") == self._decimal_to_int(payment.amount):  # ToDo: what about else?
                 payment.confirm()
 
     def handle_callback(self, request: HttpRequest, payment: OrderPayment):
         # ToDo: validate "QuickPay-Checksum-Sha256"
-        payment_info = payment.info_data
-        prev_payment_state = payment_info.get("state", "")
-        new_payment_state = request.body.get("state", "")
+        client = self._init_client()
+        current_payment_info = payment.info_data
+        new_payment_info = client.get('/payments/%s' % current_payment_info.get("id"))
+        prev_payment_state = current_payment_info.get("state", "")
+        new_payment_state = new_payment_info.get("state", "")
         # Save newest payment object to info
-        payment.info_data = request.body
+        payment.info_data = new_payment_info
         payment.save(update_fields=["info"])
         if new_payment_state != prev_payment_state:
             print(prev_payment_state, "=>", new_payment_state)  # ToDo
@@ -231,11 +231,11 @@ class UnzerMethod(BasePaymentProvider):
         current_payment_info = payment.info_data
         new_payment_info = client.get('/payments/%s' % current_payment_info.get("id"))
 
+        payment.info_data = new_payment_info
+        payment.save(update_fields=["info"])
+
         if current_payment_info.get("order_id") == new_payment_info.get("order_id") \
                 and payment.full_id == new_payment_info.get("order_id"):
-
-            payment.info_data = new_payment_info
-            payment.save(update_fields=["info"])
 
             if new_payment_info.get("accepted") and new_payment_info.get("state") == "new":
                 #    and self._decimal_to_int(payment.amount) == new_payment_info.get(operations->amount?):
@@ -263,3 +263,5 @@ class UnzerMethod(BasePaymentProvider):
 
                 if capture.get("state") == "processed" and capture.get("balance") == self._decimal_to_int(payment.amount):
                     payment.confirm()
+            else:
+                self._handle_state_change(payment)
