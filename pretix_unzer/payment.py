@@ -1,65 +1,74 @@
+from typing import Any, Dict, Union
+
 import hashlib
 import hmac
 import importlib
 import json
-from django.utils.timezone import now
-from quickpay_api_client import QPClient
 from collections import OrderedDict
 from decimal import Decimal
-from typing import Dict, Any, Union
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import get_template
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 from pretix.base.decimal import round_decimal
 from pretix.base.forms import SecretKeySettingsField
-from pretix.base.models import Order, Event, OrderPayment, OrderRefund
+from pretix.base.models import Event, Order, OrderPayment, OrderRefund
 from pretix.base.payment import BasePaymentProvider
 from pretix.base.settings import SettingsSandbox
-from pretix.multidomain.urlreverse import eventreverse, build_absolute_uri
+from pretix.multidomain.urlreverse import build_absolute_uri
+from quickpay_api_client import QPClient
 
 
 class UnzerSettingsHolder(BasePaymentProvider):
-    identifier = 'unzer_settings'
-    verbose_name = _('Unzer')
+    identifier = "unzer_settings"
+    verbose_name = _("Unzer")
     is_enabled = False
     is_meta = True
     payment_methods_settingsholder = []
 
     def __init__(self, event: Event):
         super().__init__(event)
-        self.settings = SettingsSandbox('payment', 'unzer', event)
+        self.settings = SettingsSandbox("payment", "unzer", event)
 
     @property
     def settings_form_fields(self):
         allcountries = list(countries)
-        allcountries.insert(0, ('', _('Select country')))
+        allcountries.insert(0, ("", _("Select country")))
 
         fields = [
-            ('secretkey',
-             SecretKeySettingsField(
-                 label=_('Private Key'),
-                 validators=(),
-                 help_text=_('Your Unzer private key for your merchant account, '
-                             'to be found in your Unzer settings \'Shop Integration\''),
-             )),
-            ('apikey',
-             SecretKeySettingsField(
-                 label=_('Api-Key'),
-                 validators=(),
-                 help_text=_('Your Unzer API-key for an API user, '
-                             'that is configured to have rights to access only \'/payments\' functionality, '
-                             'to be found in your Unzer settings \'Shop Integration\''),
-             )),
+            (
+                "secretkey",
+                SecretKeySettingsField(
+                    label=_("Private Key"),
+                    validators=(),
+                    help_text=_(
+                        "Your Unzer private key for your merchant account, "
+                        "to be found in your Unzer settings 'Shop Integration'"
+                    ),
+                ),
+            ),
+            (
+                "apikey",
+                SecretKeySettingsField(
+                    label=_("Api-Key"),
+                    validators=(),
+                    help_text=_(
+                        "Your Unzer API-key for an API user, "
+                        "that is configured to have rights to access only '/payments' functionality, "
+                        "to be found in your Unzer settings 'Shop Integration'"
+                    ),
+                ),
+            ),
         ]
         d = OrderedDict(
-            fields +
-            self.payment_methods_settingsholder +
-            list(super().settings_form_fields.items())
+            fields
+            + self.payment_methods_settingsholder
+            + list(super().settings_form_fields.items())
         )
 
-        d.move_to_end('_enabled', last=False)
+        d.move_to_end("_enabled", last=False)
         return d
 
 
@@ -70,7 +79,7 @@ class UnzerMethod(BasePaymentProvider):
 
     def __init__(self, event: Event):
         super().__init__(event)
-        self.settings = SettingsSandbox('payment', 'unzer', event)
+        self.settings = SettingsSandbox("payment", "unzer", event)
 
     def _init_client(self):
         auth_token = ":{0}".format(self.settings.get("apikey"))
@@ -90,12 +99,12 @@ class UnzerMethod(BasePaymentProvider):
                 )
             )
             for method in list(
-                    filter(
-                        lambda d: d["type"] in ["meta", "scheme"], module.payment_methods
-                    )
+                filter(
+                    lambda d: d["type"] in ["meta", "scheme"], module.payment_methods
+                )
             ):
                 if self.settings.get("_enabled", as_type=bool) and self.settings.get(
-                        "method_{}".format(method["method"]), as_type=bool
+                    "method_{}".format(method["method"]), as_type=bool
                 ):
                     return True
             return False
@@ -107,14 +116,18 @@ class UnzerMethod(BasePaymentProvider):
     def is_allowed(self, request: HttpRequest, total: Decimal = None) -> bool:
         return super().is_allowed(request, total)
 
-    def payment_form_render(self, request: HttpRequest, total: Decimal, order: Order = None) -> str:
+    def payment_form_render(
+        self, request: HttpRequest, total: Decimal, order: Order = None
+    ) -> str:
         template = get_template("pretix_unzer/checkout_payment_form.html")
         return template.render()
 
     def payment_is_valid_session(self, request: HttpRequest) -> bool:
         return True
 
-    def checkout_prepare(self, request: HttpRequest, cart: Dict[str, Any]) -> Union[bool, str]:
+    def checkout_prepare(
+        self, request: HttpRequest, cart: Dict[str, Any]
+    ) -> Union[bool, str]:
         return True
 
     def checkout_confirm_render(self, request, order: Order = None) -> str:
@@ -128,7 +141,7 @@ class UnzerMethod(BasePaymentProvider):
             "currency": self.event.currency,
             "order_id": payment.full_id,
         }
-        unzer_payment = client.post('/payments', body=payment_data)
+        unzer_payment = client.post("/payments", body=payment_data)
         # Create Link for Authorization:
         ident = self.identifier.split("_")[0]
         return_url = build_absolute_uri(
@@ -158,11 +171,11 @@ class UnzerMethod(BasePaymentProvider):
             "callback_url": callback_url,
             "payment_methods": self.method,
         }
-        link = client.put('/payments/%s/link' % unzer_payment['id'], body=link_data)
-        payment.info_data = client.get('/payments/%s' % unzer_payment['id'])
+        link = client.put("/payments/%s/link" % unzer_payment["id"], body=link_data)
+        payment.info_data = client.get("/payments/%s" % unzer_payment["id"])
         payment.save(update_fields=["info"])
         # Redirect customer:
-        return link['url']
+        return link["url"]
 
     def api_payment_details(self, payment: OrderPayment):
         return {
@@ -172,7 +185,9 @@ class UnzerMethod(BasePaymentProvider):
     def matching_id(self, payment: OrderPayment):
         return payment.info_data.get("id", None)
 
-    def payment_control_render(self, request: HttpRequest, payment: OrderPayment) -> str:
+    def payment_control_render(
+        self, request: HttpRequest, payment: OrderPayment
+    ) -> str:
         template = get_template("pretix_unzer/control.html")
         ctx = {
             "request": request,
@@ -195,20 +210,30 @@ class UnzerMethod(BasePaymentProvider):
         return r
 
     def payment_refund_supported(self, payment: OrderPayment) -> bool:
-        if "id" in payment.info_data and "link" in payment.info_data and "amount" in payment.info_data.get("link"):
+        if (
+            "id" in payment.info_data
+            and "link" in payment.info_data
+            and "amount" in payment.info_data.get("link")
+        ):
             return True
         return False
 
     def payment_partial_refund_supported(self, payment: OrderPayment) -> bool:
-        if "id" in payment.info_data and "link" in payment.info_data and "amount" in payment.info_data.get("link"):
+        if (
+            "id" in payment.info_data
+            and "link" in payment.info_data
+            and "amount" in payment.info_data.get("link")
+        ):
             return True
         return False
 
     def execute_refund(self, refund: OrderRefund):
         client = self._init_client()
-        status, body, headers = client.post('/payments/%s/refund' % refund.payment.info_data.get("id"),
-                                            body={"amount": self._decimal_to_int(refund.amount)},
-                                            raw=True)
+        status, body, headers = client.post(
+            "/payments/%s/refund" % refund.payment.info_data.get("id"),
+            body={"amount": self._decimal_to_int(refund.amount)},
+            raw=True,
+        )
         # OK
         if status == 202:
             refund.info_data = json.loads(body)
@@ -231,18 +256,20 @@ class UnzerMethod(BasePaymentProvider):
 
     def _amount_to_decimal(self, cents):
         places = settings.CURRENCY_PLACES.get(self.event.currency, 2)
-        return round_decimal(float(cents) / (10 ** places), self.event.currency)
+        return round_decimal(float(cents) / (10**places), self.event.currency)
 
     def _decimal_to_int(self, amount):
         places = settings.CURRENCY_PLACES.get(self.event.currency, 2)
-        return int(amount * 10 ** places)
+        return int(amount * 10**places)
 
     def _handle_state_change(self, payment: OrderPayment):
         state = payment.info_data.get("state")
         # if state == "rejected":
         # payment.fail() # ToDo: link is reusable, so, when is a payment finally failed in quickpay, never?
         if state == "processed":
-            if payment.info_data.get("balance") == self._decimal_to_int(payment.amount):  # ToDo: what about else?
+            if payment.info_data.get("balance") == self._decimal_to_int(
+                payment.amount
+            ):
                 if payment.info_data.get("test_mode") == payment.order.testmode:
                     payment.confirm()
                 else:
@@ -252,15 +279,13 @@ class UnzerMethod(BasePaymentProvider):
         # Checksum validation
         request_body = request.body
         checksum = hmac.new(
-            self.settings.get("secretkey").encode('UTF-8'),
-            request_body,
-            hashlib.sha256
+            self.settings.get("secretkey").encode("UTF-8"), request_body, hashlib.sha256
         ).hexdigest()
         validated = checksum == request.headers.get("QuickPay-Checksum-Sha256")
         print(validated, checksum, request.headers.get("QuickPay-Checksum-Sha256"))
         if validated:
             current_payment_info = payment.info_data
-            new_payment_info = json.loads(request_body.decode('UTF-8'))
+            new_payment_info = json.loads(request_body.decode("UTF-8"))
             prev_payment_state = current_payment_info.get("state", "")
             new_payment_state = new_payment_info.get("state", "")
             # Save newest payment object to info
@@ -273,16 +298,21 @@ class UnzerMethod(BasePaymentProvider):
         client = self._init_client()
 
         current_payment_info = payment.info_data
-        new_payment_info = client.get('/payments/%s' % current_payment_info.get("id"))
+        new_payment_info = client.get("/payments/%s" % current_payment_info.get("id"))
 
         payment.info_data = new_payment_info
         payment.save(update_fields=["info"])
 
-        if current_payment_info.get("order_id") == new_payment_info.get("order_id") \
-                and payment.full_id == new_payment_info.get("order_id"):
+        if current_payment_info.get("order_id") == new_payment_info.get(
+            "order_id"
+        ) and payment.full_id == new_payment_info.get("order_id"):
 
-            if new_payment_info.get("accepted") and new_payment_info.get("state") == "new" \
-                    and self._decimal_to_int(payment.amount) == new_payment_info.get("link").get("amount"):
+            if (
+                new_payment_info.get("accepted")
+                and new_payment_info.get("state") == "new"
+                and self._decimal_to_int(payment.amount)
+                == new_payment_info.get("link").get("amount")
+            ):
 
                 ident = self.identifier.split("_")[0]
                 callback_url = build_absolute_uri(
@@ -290,14 +320,16 @@ class UnzerMethod(BasePaymentProvider):
                     "plugins:pretix_{}:callback".format(ident),
                     kwargs={
                         "order": payment.order.code,
-                        "hash": hashlib.sha1(payment.order.secret.lower().encode()).hexdigest(),
+                        "hash": hashlib.sha1(
+                            payment.order.secret.lower().encode()
+                        ).hexdigest(),
                         "payment": payment.pk,
                         "payment_provider": ident,
                     },
                 )
 
                 capture = client.post(
-                    '/payments/%s/capture' % payment.info_data.get("id"),
+                    "/payments/%s/capture" % payment.info_data.get("id"),
                     headers={"QuickPay-Callback-Url": callback_url},
                     body={"amount": self._decimal_to_int(payment.amount)},
                 )
