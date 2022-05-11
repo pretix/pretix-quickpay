@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import importlib
 import json
 from django.utils.timezone import now
@@ -240,17 +241,26 @@ class UnzerMethod(BasePaymentProvider):
                     payment.fail()
 
     def handle_callback(self, request: HttpRequest, payment: OrderPayment):
-        # ToDo: validate "QuickPay-Checksum-Sha256"
-        client = self._init_client()
-        current_payment_info = payment.info_data
-        new_payment_info = client.get('/payments/%s' % current_payment_info.get("id"))
-        prev_payment_state = current_payment_info.get("state", "")
-        new_payment_state = new_payment_info.get("state", "")
-        # Save newest payment object to info
-        payment.info_data = new_payment_info
-        payment.save(update_fields=["info"])
-        if new_payment_state != prev_payment_state:
-            self._handle_state_change(payment)
+        # Checksum validation
+        request_body = request.body
+        checksum = hmac.new(
+            self.settings.get("apikey").encode('UTF-8'),
+            request_body,
+            hashlib.sha256
+        ).hexdigest()
+        validated = checksum == request.headers.get("QuickPay-Checksum-Sha256")
+        print(validated, checksum, request.headers.get("QuickPay-Checksum-Sha256"))
+        if validated:
+            # client = self._init_client()
+            current_payment_info = payment.info_data
+            new_payment_info = json.loads(request_body).get("id")  # client.get('/payments/%s' % current_payment_info.get("id"))
+            prev_payment_state = current_payment_info.get("state", "")
+            new_payment_state = new_payment_info.get("state", "")
+            # Save newest payment object to info
+            payment.info_data = new_payment_info
+            payment.save(update_fields=["info"])
+            if new_payment_state != prev_payment_state:
+                self._handle_state_change(payment)
 
     def capture_payment(self, payment: OrderPayment):
         client = self._init_client()
