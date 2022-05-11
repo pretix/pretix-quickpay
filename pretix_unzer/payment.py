@@ -247,7 +247,6 @@ class UnzerMethod(BasePaymentProvider):
         payment.info_data = new_payment_info
         payment.save(update_fields=["info"])
         if new_payment_state != prev_payment_state:
-            print(prev_payment_state, "=>", new_payment_state)  # ToDo
             self._handle_state_change(payment)
 
     def capture_payment(self, payment: OrderPayment):
@@ -262,9 +261,8 @@ class UnzerMethod(BasePaymentProvider):
         if current_payment_info.get("order_id") == new_payment_info.get("order_id") \
                 and payment.full_id == new_payment_info.get("order_id"):
 
-            if new_payment_info.get("accepted") and new_payment_info.get("state") == "new":
-                #    and self._decimal_to_int(payment.amount) == new_payment_info.get(operations->amount?):
-                # ToDo: Check if payment and authorization amounts are the same
+            if new_payment_info.get("accepted") and new_payment_info.get("state") == "new" \
+                    and self._decimal_to_int(payment.amount) == new_payment_info.get("link").get("amount"):
 
                 ident = self.identifier.split("_")[0]
                 callback_url = build_absolute_uri(
@@ -286,7 +284,8 @@ class UnzerMethod(BasePaymentProvider):
                 payment.info_data = capture
                 payment.save(update_fields=["info"])
 
-                if capture.get("state") == "processed" and capture.get("balance") == self._decimal_to_int(payment.amount):
+                if capture.get("state") == "processed" and capture.get("balance") == self._decimal_to_int(
+                        payment.amount):
                     payment.confirm()
             else:
                 self._handle_state_change(payment)
