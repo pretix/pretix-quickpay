@@ -48,7 +48,7 @@ class UnzerSettingsHolder(BasePaymentProvider):
             (
                 "apikey",
                 SecretKeySettingsField(
-                    label=_("Api Key"),
+                    label=_("API Key"),
                     validators=(),
                     help_text=_(
                         "Your Unzer API key for an API user, "

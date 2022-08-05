@@ -15,7 +15,7 @@ class PluginApp(PluginConfig):
     class PretixPluginMeta:
         name = gettext_lazy("Unzer")
         author = gettext_lazy("the pretix team")
-        description = gettext_lazy("Use Unzer as a payment provider")
+        description = gettext_lazy("Use Unzer as a payment provider, where you can activate various payment methods for your customers.")
         visible = True
         version = __version__
         category = "PAYMENT"

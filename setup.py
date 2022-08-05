@@ -28,7 +28,7 @@ cmdclass = {"build": CustomBuild}
 setup(
     name="pretix-unzer",
     version=__version__,
-    description="This plugin allows you to use Unzer as a payment provider",
+    description="Use Unzer as a payment provider, where you can activate various payment methods for your customers.",
     long_description=long_description,
     url="https://github.com/pretix/pretix-unzer",
     author="Phin Wolkwitz",
