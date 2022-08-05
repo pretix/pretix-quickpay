@@ -11,7 +11,6 @@ from django.http import HttpRequest
 from django.template.loader import get_template
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
-from django_countries import countries
 from pretix.base.decimal import round_decimal
 from pretix.base.forms import SecretKeySettingsField
 from pretix.base.models import Event, Order, OrderPayment, OrderRefund
@@ -34,12 +33,9 @@ class UnzerSettingsHolder(BasePaymentProvider):
 
     @property
     def settings_form_fields(self):
-        allcountries = list(countries)
-        allcountries.insert(0, ("", _("Select country")))
-
         fields = [
             (
-                "secretkey",
+                "privatekey",
                 SecretKeySettingsField(
                     label=_("Private Key"),
                     validators=(),
@@ -52,10 +48,10 @@ class UnzerSettingsHolder(BasePaymentProvider):
             (
                 "apikey",
                 SecretKeySettingsField(
-                    label=_("Api-Key"),
+                    label=_("Api Key"),
                     validators=(),
                     help_text=_(
-                        "Your Unzer API-key for an API user, "
+                        "Your Unzer API key for an API user, "
                         "that is configured to have rights to access only '/payments' functionality, "
                         "to be found in your Unzer settings 'Shop Integration'"
                     ),
@@ -278,11 +274,13 @@ class UnzerMethod(BasePaymentProvider):
     def handle_callback(self, request: HttpRequest, payment: OrderPayment):
         # Checksum validation
         request_body = request.body
+        payment.order.log_action(
+            "pretix_unzer.event", data={"type": "callback", "content": request_body}
+        )
         checksum = hmac.new(
-            self.settings.get("secretkey").encode("UTF-8"), request_body, hashlib.sha256
+             self.settings.get("privatekey").encode("UTF-8"), request_body, hashlib.sha256
         ).hexdigest()
         validated = checksum == request.headers.get("QuickPay-Checksum-Sha256")
-        print(validated, checksum, request.headers.get("QuickPay-Checksum-Sha256"))
         if validated:
             current_payment_info = payment.info_data
             new_payment_info = json.loads(request_body.decode("UTF-8"))
