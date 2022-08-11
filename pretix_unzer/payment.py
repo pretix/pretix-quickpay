@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import importlib
 import json
+import logging
 from collections import OrderedDict
 from decimal import Decimal
 from django.conf import settings
@@ -14,10 +15,12 @@ from django.utils.translation import gettext_lazy as _
 from pretix.base.decimal import round_decimal
 from pretix.base.forms import SecretKeySettingsField
 from pretix.base.models import Event, Order, OrderPayment, OrderRefund
-from pretix.base.payment import BasePaymentProvider
+from pretix.base.payment import BasePaymentProvider, PaymentException
 from pretix.base.settings import SettingsSandbox
 from pretix.multidomain.urlreverse import build_absolute_uri
 from quickpay_api_client import QPClient
+
+logger = logging.getLogger("pretix_unzer")
 
 
 class UnzerSettingsHolder(BasePaymentProvider):
@@ -137,7 +140,16 @@ class UnzerMethod(BasePaymentProvider):
             "currency": self.event.currency,
             "order_id": payment.full_id,
         }
-        unzer_payment = client.post("/payments", body=payment_data)
+        try:
+            unzer_payment = client.post("/payments", body=payment_data)
+        except Exception as e:
+            logger.exception("Unzer Payments error: %s" % e)
+            raise PaymentException(
+                _(
+                    "We had trouble communicating with the payment provider. Please try again and get in touch "
+                    "with us if this problem persists."
+                )
+            )
         # Create Link for Authorization:
         ident = self.identifier.split("_")[0]
         return_url = build_absolute_uri(
@@ -166,9 +178,19 @@ class UnzerMethod(BasePaymentProvider):
             "cancel_url": return_url,
             "callback_url": callback_url,
             "payment_methods": self.method,
+            "auto_capture": True,
         }
-        link = client.put("/payments/%s/link" % unzer_payment["id"], body=link_data)
-        payment.info_data = client.get("/payments/%s" % unzer_payment["id"])
+        try:
+            link = client.put("/payments/%s/link" % unzer_payment["id"], body=link_data)
+            payment.info_data = client.get("/payments/%s" % unzer_payment["id"])
+        except Exception as e:
+            logger.exception("Unzer Payments error: %s" % e)
+            raise PaymentException(
+                _(
+                    "We had trouble communicating with the payment provider. Please try again and get in touch "
+                    "with us if this problem persists."
+                )
+            )
         payment.save(update_fields=["info"])
         # Redirect customer:
         return link["url"]
@@ -225,11 +247,21 @@ class UnzerMethod(BasePaymentProvider):
 
     def execute_refund(self, refund: OrderRefund):
         client = self._init_client()
-        status, body, headers = client.post(
-            "/payments/%s/refund" % refund.payment.info_data.get("id"),
-            body={"amount": self._decimal_to_int(refund.amount)},
-            raw=True,
-        )
+        try:
+            status, body, headers = client.post(
+                "/payments/%s/refund" % refund.payment.info_data.get("id"),
+                body={"amount": self._decimal_to_int(refund.amount)},
+                raw=True,
+            )
+        except Exception as e:
+            logger.exception("Unzer Payments error: %s" % e)
+            raise PaymentException(
+                _(
+                    "We had trouble communicating with the payment provider. Please try again and get in touch "
+                    "with us if this problem persists."
+                )
+            )
+
         # OK
         if status == 202:
             refund.info_data = json.loads(body)
@@ -260,12 +292,10 @@ class UnzerMethod(BasePaymentProvider):
 
     def _handle_state_change(self, payment: OrderPayment):
         state = payment.info_data.get("state")
-        # if state == "rejected":
-        # payment.fail() # ToDo: link is reusable, so, when is a payment finally failed in quickpay, never?
+        if state == "rejected":
+            payment.fail()
         if state == "processed":
-            if payment.info_data.get("balance") == self._decimal_to_int(
-                payment.amount
-            ):
+            if payment.info_data.get("balance") == self._decimal_to_int(payment.amount):
                 if payment.info_data.get("test_mode") == payment.order.testmode:
                     payment.confirm()
                 else:
@@ -274,64 +304,53 @@ class UnzerMethod(BasePaymentProvider):
     def handle_callback(self, request: HttpRequest, payment: OrderPayment):
         # Checksum validation
         request_body = request.body
-        payment.order.log_action(
-            "pretix_unzer.event", data={"type": "callback", "content": request_body}
-        )
         checksum = hmac.new(
-             self.settings.get("privatekey").encode("UTF-8"), request_body, hashlib.sha256
+            self.settings.get("privatekey").encode("UTF-8"),
+            request_body,
+            hashlib.sha256,
         ).hexdigest()
         validated = checksum == request.headers.get("QuickPay-Checksum-Sha256")
         if validated:
             current_payment_info = payment.info_data
             new_payment_info = json.loads(request_body.decode("UTF-8"))
+            payment.order.log_action(
+                "pretix_unzer.event",
+                data={"type": "callback", "content": new_payment_info},
+            )
             prev_payment_state = current_payment_info.get("state", "")
             new_payment_state = new_payment_info.get("state", "")
             # Save newest payment object to info
             payment.info_data = new_payment_info
             payment.save(update_fields=["info"])
+            operations = new_payment_info.get("operations", "")
+            for operation in operations:
+                if int(operation.get("qp_status_code")) >= 40000:
+                    payment.fail()
             if new_payment_state != prev_payment_state:
                 self._handle_state_change(payment)
+        else:
+            logger.warning("Unzer Callback with invalid checksum: %s", request_body)
 
-    def capture_payment(self, payment: OrderPayment):
+    def update_payment(self, payment: OrderPayment):
         client = self._init_client()
 
         current_payment_info = payment.info_data
-        new_payment_info = client.get("/payments/%s" % current_payment_info.get("id"))
+
+        try:
+            new_payment_info = client.get(
+                "/payments/%s" % current_payment_info.get("id")
+            )
+        except Exception as e:
+            logger.exception("Unzer Payments error: %s" % e)
+            raise PaymentException(
+                _(
+                    "We had trouble communicating with the payment provider. Please try again and get in touch "
+                    "with us if this problem persists."
+                )
+            )
 
         payment.info_data = new_payment_info
         payment.save(update_fields=["info"])
 
-        if current_payment_info.get("order_id") == new_payment_info.get(
-            "order_id"
-        ) and payment.full_id == new_payment_info.get("order_id"):
-
-            if (
-                new_payment_info.get("accepted")
-                and new_payment_info.get("state") == "new"
-                and self._decimal_to_int(payment.amount)
-                == new_payment_info.get("link").get("amount")
-            ):
-
-                ident = self.identifier.split("_")[0]
-                callback_url = build_absolute_uri(
-                    self.event,
-                    "plugins:pretix_{}:callback".format(ident),
-                    kwargs={
-                        "order": payment.order.code,
-                        "hash": hashlib.sha1(
-                            payment.order.secret.lower().encode()
-                        ).hexdigest(),
-                        "payment": payment.pk,
-                        "payment_provider": ident,
-                    },
-                )
-
-                capture = client.post(
-                    "/payments/%s/capture" % payment.info_data.get("id"),
-                    headers={"QuickPay-Callback-Url": callback_url},
-                    body={"amount": self._decimal_to_int(payment.amount)},
-                )
-                payment.info_data = capture
-                payment.save(update_fields=["info"])
-
+        if new_payment_info.get("state", "") != current_payment_info.get("state", ""):
             self._handle_state_change(payment)

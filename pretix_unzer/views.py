@@ -16,15 +16,15 @@ class UnzerOrderView:
         try:
             self.order = request.event.orders.get(code=kwargs["order"])
             if (
-                    hashlib.sha1(self.order.secret.lower().encode()).hexdigest()
-                    != kwargs["hash"].lower()
+                hashlib.sha1(self.order.secret.lower().encode()).hexdigest()
+                != kwargs["hash"].lower()
             ):
                 raise Http404("Unknown order")
         except Order.DoesNotExist:
             # Do a hash comparison as well to harden timing attacks
             if (
-                    "abcdefghijklmnopq".lower()
-                    == hashlib.sha1("abcdefghijklmnopq".encode()).hexdigest()
+                "abcdefghijklmnopq".lower()
+                == hashlib.sha1("abcdefghijklmnopq".encode()).hexdigest()
             ):
                 raise Http404("Unknown order")
             else:
@@ -56,20 +56,17 @@ class UnzerOrderView:
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ReturnView(UnzerOrderView, View):
-
     def post(self, request, *args, **kwargs):
-        # Capture Payment:
         try:
-            self.pprov.capture_payment(self.payment)
+            self.pprov.update_payment(self.payment)
         except PaymentException as e:
             messages.error(self.request, str(e))
             return self._redirect_to_order()
         return self._redirect_to_order()
 
     def get(self, request, *args, **kwargs):
-        # Capture Payment:
         try:
-            self.pprov.capture_payment(self.payment)
+            self.pprov.update_payment(self.payment)
         except PaymentException as e:
             messages.error(self.request, str(e))
             return self._redirect_to_order()
@@ -78,11 +75,6 @@ class ReturnView(UnzerOrderView, View):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CallbackView(UnzerOrderView, View):
-
     def post(self, request, *args, **kwargs):
-        try:
-            self.pprov.handle_callback(request, self.payment)
-        except PaymentException as e:
-            messages.error(self.request, str(e))
-            return self._redirect_to_order()
+        self.pprov.handle_callback(request, self.payment)
         return HttpResponse("[accepted]", status=200)
