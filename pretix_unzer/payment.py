@@ -292,6 +292,14 @@ class UnzerMethod(BasePaymentProvider):
                     payment.confirm()
                 else:
                     payment.fail()
+            else:
+                operations = payment.info_data.get("operations", "")
+                for operation in operations:
+                    if (
+                        operation.get("type") == "capture"
+                        and int(operation.get("qp_status_code")) >= 40000
+                    ):
+                        payment.fail()
 
     def handle_callback(self, request: HttpRequest, payment: OrderPayment):
         # Checksum validation
@@ -304,20 +312,23 @@ class UnzerMethod(BasePaymentProvider):
         validated = checksum == request.headers.get("QuickPay-Checksum-Sha256")
         if validated:
             current_payment_info = payment.info_data
-            new_payment_info = json.loads(request_body.decode("UTF-8"))
+            payment_id = json.loads(request_body.decode("UTF-8")).get("id")
+            try:
+                client = self._init_client()
+                # get the current info from provider, as we can run into race conditions here
+                new_payment_info = client.get("/payments/%s" % payment_id)
+            except Exception as e:
+                logger.exception("Unzer Payments error: %s" % e)
+                return
+            # Save newest payment object to info
+            payment.info_data = new_payment_info
+            payment.save(update_fields=["info"])
             payment.order.log_action(
                 "pretix_unzer.event",
                 data={"type": "callback", "content": new_payment_info},
             )
             prev_payment_state = current_payment_info.get("state", "")
             new_payment_state = new_payment_info.get("state", "")
-            # Save newest payment object to info
-            payment.info_data = new_payment_info
-            payment.save(update_fields=["info"])
-            operations = new_payment_info.get("operations", "")
-            for operation in operations:
-                if int(operation.get("qp_status_code")) >= 40000:
-                    payment.fail()
             if new_payment_state != prev_payment_state:
                 self._handle_state_change(payment)
         else:
