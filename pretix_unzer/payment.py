@@ -140,17 +140,6 @@ class UnzerMethod(BasePaymentProvider):
             "currency": self.event.currency,
             "order_id": payment.full_id,
         }
-        try:
-            unzer_payment = client.post("/payments", body=payment_data)
-        except Exception as e:
-            logger.exception("Unzer Payments error: %s" % e)
-            raise PaymentException(
-                _(
-                    "We had trouble communicating with the payment provider. Please try again and get in touch "
-                    "with us if this problem persists."
-                )
-            )
-        # Create Link for Authorization:
         ident = self.identifier.split("_")[0]
         return_url = build_absolute_uri(
             self.event,
@@ -181,6 +170,9 @@ class UnzerMethod(BasePaymentProvider):
             "auto_capture": True,
         }
         try:
+            # Create payment:
+            unzer_payment = client.post("/payments", body=payment_data)
+            # Create Link for Authorization:
             link = client.put("/payments/%s/link" % unzer_payment["id"], body=link_data)
             payment.info_data = client.get("/payments/%s" % unzer_payment["id"])
         except Exception as e:
