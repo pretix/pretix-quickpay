@@ -57,19 +57,9 @@ class UnzerOrderView:
 @method_decorator(csrf_exempt, name="dispatch")
 class ReturnView(UnzerOrderView, View):
     def post(self, request, *args, **kwargs):
-        try:
-            self.pprov.update_payment(self.payment)
-        except PaymentException as e:
-            messages.error(self.request, str(e))
-            return self._redirect_to_order()
         return self._redirect_to_order()
 
     def get(self, request, *args, **kwargs):
-        try:
-            self.pprov.update_payment(self.payment)
-        except PaymentException as e:
-            messages.error(self.request, str(e))
-            return self._redirect_to_order()
         return self._redirect_to_order()
 
 

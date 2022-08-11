@@ -333,27 +333,3 @@ class UnzerMethod(BasePaymentProvider):
                 self._handle_state_change(payment)
         else:
             logger.warning("Unzer Callback with invalid checksum: %s", request_body)
-
-    def update_payment(self, payment: OrderPayment):
-        client = self._init_client()
-
-        current_payment_info = payment.info_data
-
-        try:
-            new_payment_info = client.get(
-                "/payments/%s" % current_payment_info.get("id")
-            )
-        except Exception as e:
-            logger.exception("Unzer Payments error: %s" % e)
-            raise PaymentException(
-                _(
-                    "We had trouble communicating with the payment provider. Please try again and get in touch "
-                    "with us if this problem persists."
-                )
-            )
-
-        payment.info_data = new_payment_info
-        payment.save(update_fields=["info"])
-
-        if new_payment_info.get("state", "") != current_payment_info.get("state", ""):
-            self._handle_state_change(payment)
