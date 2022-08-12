@@ -10,66 +10,83 @@ payment_methods = [
         "public_name": _("Credit card"),
         "verbose_name": _("Credit card"),
     },
-    # These separate creditcards are listed at quickpay, but they seem to not have their own page
-    # {
-    #     "method": "american-express",
-    #     "type": "other",
-    #     "public_name": _("Credit card: American Express"),
-    #     "verbose_name": _("Credit card: American Express"),
-    # },
-    # {
-    #     "method": "dankort",
-    #     "type": "other",
-    #     "public_name": _("Credit card: Dankort"),
-    #     "verbose_name": _("Credit card: Dankort"),
-    # },
-    # {
-    #     "method": "diners",
-    #     "type": "other",
-    #     "public_name": _("Credit card: Diners Club"),
-    #     "verbose_name": _("Credit card: Diners Club"),
-    # },
-    # {
-    #     "method": "jcb",
-    #     "type": "other",
-    #     "public_name": _("Credit card: JCB"),
-    #     "verbose_name": _("Credit card: JCB"),
-    # },
-    # {
-    #     "method": "maestro",
-    #     "type": "other",
-    #     "public_name": _("Credit card: Maestro"),
-    #     "verbose_name": _("Credit card: Maestro"),
-    # },
-    # {
-    #     "method": "mastercard",
-    #     "type": "other",
-    #     "public_name": _("Credit card: Mastercard"),
-    #     "verbose_name": _("Credit card: Mastercard"),
-    # },
-    # {
-    #     "method": "mastercard-debet",  # sic?
-    #     "type": "other",
-    #     "public_name": _("Debit card: Mastercard"),
-    #     "verbose_name": _("Debit card: Mastercard"),
-    # },
-    # {
-    #     "method": "visa",
-    #     "type": "other",
-    #     "public_name": _("Credit card: Visa"),
-    #     "verbose_name": _("Credit card: Visa"),
-    # },
-    # {
-    #     "method": "visa-electron",
-    #     "type": "other",
-    #     "public_name": _("Debit card: Visa"),
-    #     "verbose_name": _("Debit card: Visa"),
-    # },
+    {
+        "method": "american-express",
+        "type": "other",
+        "public_name": _("Credit card: American Express"),
+        "verbose_name": _("Credit card: American Express"),
+    },
+    {
+        "method": "dankort",
+        "type": "other",
+        "public_name": _("Credit card: Dankort"),
+        "verbose_name": _("Credit card: Dankort"),
+    },
+    {
+        "method": "diners",
+        "type": "other",
+        "public_name": _("Credit card: Diners Club"),
+        "verbose_name": _("Credit card: Diners Club"),
+    },
+    {
+        "method": "jcb",
+        "type": "other",
+        "public_name": _("Credit card: JCB"),
+        "verbose_name": _("Credit card: JCB"),
+    },
+    {
+        "method": "maestro",
+        "type": "other",
+        "public_name": _("Credit card: Maestro"),
+        "verbose_name": _("Credit card: Maestro"),
+    },
+    {
+        "method": "mastercard",
+        "type": "other",
+        "public_name": _("Credit card: Mastercard"),
+        "verbose_name": _("Credit card: Mastercard"),
+    },
+    {
+        "method": "mastercard-debet",  # sic?
+        "type": "other",
+        "public_name": _("Debit card: Mastercard"),
+        "verbose_name": _("Debit card: Mastercard"),
+    },
+    {
+        "method": "visa",
+        "type": "other",
+        "public_name": _("Credit card: Visa"),
+        "verbose_name": _("Credit card: Visa"),
+    },
+    {
+        "method": "visa-electron",
+        "type": "other",
+        "public_name": _("Debit card: Visa"),
+        "verbose_name": _("Debit card: Visa"),
+    },
     {
         "method": "fbg1886",
         "type": "other",
         "public_name": _("Forbrugsforeningen af 1886"),
         "verbose_name": _("Forbrugsforeningen af 1886"),
+    },
+    {
+        "method": "apple-pay",
+        "type": "other",
+        "public_name": _("Apple Pay"),
+        "verbose_name": _("Apple Pay"),
+    },
+    {
+        "method": "google-pay",
+        "type": "other",
+        "public_name": _("Google Pay"),
+        "verbose_name": _("Google Pay"),
+    },
+    {
+        "method": "anyday-split",
+        "type": "other",
+        "public_name": _("ANYDAY Split"),
+        "verbose_name": _("ANYDAY Split"),
     },
     {
         "method": "mobilepay",
@@ -149,6 +166,12 @@ payment_methods = [
         "public_name": _("Paysafecard"),
         "verbose_name": _("Paysafecard"),
     },
+    {
+        "method": "unzer-pay-later-invoice",
+        "type": "other",
+        "public_name": _("Unzer Pay Later Invoice"),
+        "verbose_name": _("Unzer Pay Later Invoice"),
+    }
 ]
 
 
@@ -165,6 +188,7 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
                         else "",
                         m["verbose_name"],
                     ),
+                    help_text=_("Needs to be enabled in your payment provider's account first."),
                     required=False,
                 ),
             )

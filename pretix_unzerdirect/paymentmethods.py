@@ -7,19 +7,14 @@ from .payment import UnzerdirectMethod, UnzerdirectSettingsHolder
 
 supported_methods = [
     "creditcard",
-    "fbg1886",
-    "mobilepay",
+    "mastercard",
+    "visa",
+    "apple-pay",
+    "google-pay",
+    "klarna-payments",
     "paypal",
     "sofort",
-    "viabill",
-    "resurs",
-    "klarna-payments",
-    "bitcoin",
-    "swish",
-    "trustly",
-    "ideal",
-    "vipps",
-    "paysafecard",
+    "unzer-pay-later-invoice",
 ]
 payment_methods = [
     item for item in payment_methods_repo if item.get("method") in supported_methods
