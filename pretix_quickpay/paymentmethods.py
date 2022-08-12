@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .payment import UnzerMethod, UnzerSettingsHolder
+from .payment import QuickpayMethod, QuickpaySettingsHolder
 
 payment_methods = [
     {
@@ -10,6 +10,7 @@ payment_methods = [
         "public_name": _("Credit card"),
         "verbose_name": _("Credit card"),
     },
+    # These separate creditcards are listed at quickpay, but they seem to not have their own page
     # {
     #     "method": "american-express",
     #     "type": "other",
@@ -172,7 +173,7 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
     # We do not want the "scheme"-methods listed as a payment-method, since they are covered by the meta methods
     return [settingsholder] + [
         type(
-            f'Unzer{"".join(m["public_name"].split())}',
+            f'Quickpay{"".join(m["public_name"].split())}',
             (m["baseclass"] if "baseclass" in m else baseclass,),
             {
                 "identifier": "{payment_provider}_{payment_method}".format(
@@ -192,5 +193,5 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
 
 
 payment_method_classes = get_payment_method_classes(
-    "Unzer", payment_methods, UnzerMethod, UnzerSettingsHolder
+    "Quickpay", payment_methods, QuickpayMethod, QuickpaySettingsHolder
 )

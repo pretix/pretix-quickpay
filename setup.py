@@ -4,7 +4,7 @@ from distutils.command.build import build
 from django.core import management
 from setuptools import find_packages, setup
 
-from pretix_unzer import __version__
+from pretix_quickpay import __version__
 
 
 try:
@@ -26,11 +26,12 @@ cmdclass = {"build": CustomBuild}
 
 
 setup(
-    name="pretix-unzer",
+    name="pretix-quickpay",
     version=__version__,
-    description="Use Unzer as a payment provider, where you can activate various payment methods for your customers.",
+    description="Use Quickpay as a payment provider, "
+    "where you can activate various payment methods for your customers.",
     long_description=long_description,
-    url="https://github.com/pretix/pretix-unzer",
+    url="https://github.com/pretix/pretix-quickpay",
     author="Phin Wolkwitz",
     author_email="wolkwitz@rami.io",
     license="Apache",
@@ -40,6 +41,7 @@ setup(
     cmdclass=cmdclass,
     entry_points="""
 [pretix.plugin]
-pretix_unzer=pretix_unzer:PretixPluginMeta
+pretix_quickpay=pretix_quickpay:PretixPluginMeta
+pretix_unzerdirect=pretix_unzerdirect:PretixPluginMeta
 """,
 )

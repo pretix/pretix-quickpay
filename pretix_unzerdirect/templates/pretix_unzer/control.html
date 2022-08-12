@@ -1,0 +1,32 @@
+{% load i18n %}
+
+{% if payment_info %}
+    <dl class="dl-horizontal">
+        {% if "id" in payment_info %}
+            <dt>{% trans "Payment ID" %}</dt>
+            <dd>{{ payment_info.id }}</dd>
+        {% endif %}
+        {% if "link" in payment_info %}
+            <dt>{% trans "Link" %}</dt>
+            <dd>{{ payment_info.link.url }}</dd>
+        {% endif %}
+        {% if "state" in payment_info %}
+            <dt>{% trans "State" %}</dt>
+            <dd>{{ payment_info.state }}</dd>
+        {% endif %}
+        {% if "operations" in payment_info %}
+            {% for operation in payment_info.operations %}
+                <dt>{% trans "Operation" %} {{ operation.id }}</dt>
+                <dd>{{ operation.type }}: {{ operation.qp_status_msg }}</dd>
+            {% endfor %}
+        {% endif %}
+        {% if "test_mode" in payment_info %}
+            <dt>{% trans "Test" %}</dt>
+            <dd>{{ payment_info.test_mode }}</dd>
+        {% endif %}
+        {% if "updated_at" in payment_info %}
+            <dt>{% trans "Last update" %}</dt>
+            <dd>{{ payment_info.updated_at }}</dd>
+        {% endif %}
+    </dl>
+{% endif %}

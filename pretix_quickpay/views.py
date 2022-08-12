@@ -11,7 +11,7 @@ from pretix.base.payment import PaymentException
 from pretix.multidomain.urlreverse import eventreverse
 
 
-class UnzerOrderView:
+class QuickpayOrderView:
     def dispatch(self, request, *args, **kwargs):
         try:
             self.order = request.event.orders.get(code=kwargs["order"])
@@ -55,7 +55,7 @@ class UnzerOrderView:
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class ReturnView(UnzerOrderView, View):
+class ReturnView(QuickpayOrderView, View):
     def post(self, request, *args, **kwargs):
         return self._redirect_to_order()
 
@@ -64,7 +64,7 @@ class ReturnView(UnzerOrderView, View):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class CallbackView(UnzerOrderView, View):
+class CallbackView(QuickpayOrderView, View):
     def post(self, request, *args, **kwargs):
         self.pprov.handle_callback(request, self.payment)
         return HttpResponse("[accepted]", status=200)

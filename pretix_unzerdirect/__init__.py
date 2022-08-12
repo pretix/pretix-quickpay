@@ -9,23 +9,23 @@ __version__ = "1.0.0"
 
 
 class PluginApp(PluginConfig):
-    name = "pretix_unzer"
-    verbose_name = "Unzer payments for pretix"
+    name = "pretix_unzerdirect"
+    verbose_name = "Unzer Direct payments for pretix"
 
     class PretixPluginMeta:
-        name = gettext_lazy("Unzer")
+        name = gettext_lazy("Unzer Direct")
         author = gettext_lazy("the pretix team")
         description = gettext_lazy(
-            "Use Unzer as a payment provider, where you can activate various payment methods for your customers."
+            "Use Unzer Direct as a payment provider, where you can activate various payment methods for your customers."
         )
         visible = True
         version = __version__
         category = "PAYMENT"
-        picture = "pretix_unzer/logo.svg"
+        picture = "pretix_unzerdirect/logo.svg"
         compatibility = "pretix>=2.7.0"
 
     def ready(self):
         from . import signals  # NOQA
 
 
-default_app_config = "pretix_unzer.PluginApp"
+default_app_config = "pretix_unzerdirect.PluginApp"

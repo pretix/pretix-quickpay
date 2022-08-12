@@ -1,10 +1,12 @@
-Unzer payments for pretix
-=========================
+Quickpay payments for pretix
+============================
 
 This is a plugin for `pretix`_. 
 
-This allows you to to process payments through Unzer as a payment provider. The payment provider
-makes various payment methods available for your customers, such as payment via credit card and many more.
+This allows you to to process payments through Quickpay as a payment provider or payment provider's that use Quickpay
+like Unzer Direct.
+The payment provider makes various payment methods available for your customers, such as payment via credit card and
+many more.
 
 Development setup
 -----------------

@@ -20,19 +20,19 @@ from pretix.base.settings import SettingsSandbox
 from pretix.multidomain.urlreverse import build_absolute_uri
 from quickpay_api_client import QPClient
 
-logger = logging.getLogger("pretix_unzer")
+logger = logging.getLogger("pretix_quickpay")
 
 
-class UnzerSettingsHolder(BasePaymentProvider):
-    identifier = "unzer_settings"
-    verbose_name = _("Unzer")
+class QuickpaySettingsHolder(BasePaymentProvider):
+    identifier = "quickpay_settings"
+    verbose_name = _("Quickpay")
     is_enabled = False
     is_meta = True
     payment_methods_settingsholder = []
 
     def __init__(self, event: Event):
         super().__init__(event)
-        self.settings = SettingsSandbox("payment", "unzer", event)
+        self.settings = SettingsSandbox("payment", "quickpay", event)
 
     @property
     def settings_form_fields(self):
@@ -43,8 +43,8 @@ class UnzerSettingsHolder(BasePaymentProvider):
                     label=_("Private Key"),
                     validators=(),
                     help_text=_(
-                        "Your Unzer private key for your merchant account, "
-                        "to be found in your Unzer settings 'Shop Integration'"
+                        "Your merchant account's private key, "
+                        "to be found in your payment provider's settings: 'Shop Integration'"
                     ),
                 ),
             ),
@@ -54,9 +54,9 @@ class UnzerSettingsHolder(BasePaymentProvider):
                     label=_("API Key"),
                     validators=(),
                     help_text=_(
-                        "Your Unzer API key for an API user, "
+                        "Your API key for an API user, "
                         "that is configured to have rights to access only '/payments' functionality, "
-                        "to be found in your Unzer settings 'Shop Integration'"
+                        "to be found in your payment provider's settings: 'Shop Integration'"
                     ),
                 ),
             ),
@@ -71,14 +71,14 @@ class UnzerSettingsHolder(BasePaymentProvider):
         return d
 
 
-class UnzerMethod(BasePaymentProvider):
+class QuickpayMethod(BasePaymentProvider):
     identifier = ""
     method = ""
     verbose_name = ""
 
     def __init__(self, event: Event):
         super().__init__(event)
-        self.settings = SettingsSandbox("payment", "unzer", event)
+        self.settings = SettingsSandbox("payment", "quickpay", event)
 
     def _init_client(self):
         auth_token = ":{0}".format(self.settings.get("apikey"))
@@ -93,7 +93,7 @@ class UnzerMethod(BasePaymentProvider):
     def is_enabled(self) -> bool:
         if self.type == "meta":
             module = importlib.import_module(
-                __name__.replace("unzer", self.identifier.split("_")[0]).replace(
+                __name__.replace("quickpay", self.identifier.split("_")[0]).replace(
                     ".payment", ".paymentmethods"
                 )
             )
@@ -118,7 +118,7 @@ class UnzerMethod(BasePaymentProvider):
     def payment_form_render(
         self, request: HttpRequest, total: Decimal, order: Order = None
     ) -> str:
-        template = get_template("pretix_unzer/checkout_payment_form.html")
+        template = get_template("pretix_quickpay/checkout_payment_form.html")
         return template.render()
 
     def payment_is_valid_session(self, request: HttpRequest) -> bool:
@@ -130,7 +130,7 @@ class UnzerMethod(BasePaymentProvider):
         return True
 
     def checkout_confirm_render(self, request, order: Order = None) -> str:
-        template = get_template("pretix_unzer/checkout_payment_confirm.html")
+        template = get_template("pretix_quickpay/checkout_payment_confirm.html")
         ctx = {"request": request}
         return template.render(ctx)
 
@@ -171,12 +171,14 @@ class UnzerMethod(BasePaymentProvider):
         }
         try:
             # Create payment:
-            unzer_payment = client.post("/payments", body=payment_data)
+            quickpay_payment = client.post("/payments", body=payment_data)
             # Create Link for Authorization:
-            link = client.put("/payments/%s/link" % unzer_payment["id"], body=link_data)
-            payment.info_data = client.get("/payments/%s" % unzer_payment["id"])
+            link = client.put(
+                "/payments/%s/link" % quickpay_payment["id"], body=link_data
+            )
+            payment.info_data = client.get("/payments/%s" % quickpay_payment["id"])
         except Exception as e:
-            logger.exception("Unzer Payments error: %s" % e)
+            logger.exception("Quickpay Payments error: %s" % e)
             raise PaymentException(
                 _(
                     "We had trouble communicating with the payment provider. Please try again and get in touch "
@@ -198,7 +200,7 @@ class UnzerMethod(BasePaymentProvider):
     def payment_control_render(
         self, request: HttpRequest, payment: OrderPayment
     ) -> str:
-        template = get_template("pretix_unzer/control.html")
+        template = get_template("pretix_quickpay/control.html")
         ctx = {
             "request": request,
             "event": self.event,
@@ -246,7 +248,7 @@ class UnzerMethod(BasePaymentProvider):
                 raw=True,
             )
         except Exception as e:
-            logger.exception("Unzer Payments error: %s" % e)
+            logger.exception("Quickpay Payments error: %s" % e)
             raise PaymentException(
                 _(
                     "We had trouble communicating with the payment provider. Please try again and get in touch "
@@ -318,13 +320,13 @@ class UnzerMethod(BasePaymentProvider):
                 # get the current info from provider, as we can run into race conditions here
                 new_payment_info = client.get("/payments/%s" % payment_id)
             except Exception as e:
-                logger.exception("Unzer Payments error: %s" % e)
+                logger.exception("Quickpay Payments error: %s" % e)
                 return
             # Save newest payment object to info
             payment.info_data = new_payment_info
             payment.save(update_fields=["info"])
             payment.order.log_action(
-                "pretix_unzer.event",
+                "pretix_quickpay.event",
                 data={"type": "callback", "content": new_payment_info},
             )
             prev_payment_state = current_payment_info.get("state", "")
@@ -332,4 +334,4 @@ class UnzerMethod(BasePaymentProvider):
             if new_payment_state != prev_payment_state:
                 self._handle_state_change(payment)
         else:
-            logger.warning("Unzer Callback with invalid checksum: %s", request_body)
+            logger.warning("Quickpay Callback with invalid checksum: %s", request_body)

@@ -1,6 +1,6 @@
 #!/bin/sh
-COMPONENTS=pretix/pretix-plugin-pretix-unzer
-DIR=pretix_unzer/locale
+COMPONENTS=pretix/pretix-plugin-pretix-quickpay
+DIR=pretix_quickpay/locale
 # Renerates .po files used for translating the plugin
 set -e
 set -x

@@ -4,13 +4,13 @@ on:
   push:
     branches: [ main, master ]
     paths-ignore:
-      - 'pretix_unzer/locale/**'
-      - 'pretix_unzer/static/**'
+      - 'pretix_quickpay/locale/**'
+      - 'pretix_quickpay/static/**'
   pull_request:
     branches: [ main, master ]
     paths-ignore:
-      - 'pretix_unzer/locale/**'
-      - 'pretix_unzer/static/**'
+      - 'pretix_quickpay/locale/**'
+      - 'pretix_quickpay/static/**'
 
 jobs:
   isort:

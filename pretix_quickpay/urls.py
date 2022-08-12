@@ -25,4 +25,4 @@ def get_event_patterns(brand):
     ]
 
 
-event_patterns = get_event_patterns("unzer")
+event_patterns = get_event_patterns("quickpay")
