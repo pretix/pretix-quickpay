@@ -171,7 +171,7 @@ payment_methods = [
         "type": "other",
         "public_name": _("Unzer Pay Later Invoice"),
         "verbose_name": _("Unzer Pay Later Invoice"),
-    }
+    },
 ]
 
 
@@ -188,7 +188,9 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
                         else "",
                         m["verbose_name"],
                     ),
-                    help_text=_("Needs to be enabled in your payment provider's account first."),
+                    help_text=_(
+                        "Needs to be enabled in your payment provider's account first."
+                    ),
                     required=False,
                 ),
             )
