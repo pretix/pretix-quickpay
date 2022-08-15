@@ -1,5 +1,8 @@
 recursive-include pretix_quickpay/static *
 recursive-include pretix_quickpay/templates *
 recursive-include pretix_quickpay/locale *
+recursive-include pretix_unzerdirect/static *
+recursive-include pretix_unzerdirect/templates *
+recursive-include pretix_unzerdirect/locale *
 include LICENSE
 exclude .gitlab-ci.yml
