@@ -10,6 +10,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.loader import get_template
+from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from pretix.base.decimal import round_decimal
@@ -133,6 +134,20 @@ class QuickpayMethod(BasePaymentProvider):
         template = get_template("pretix_quickpay/checkout_payment_confirm.html")
         ctx = {"request": request}
         return template.render(ctx)
+
+    def test_mode_message(self) -> str:
+        return mark_safe(
+            _(
+                "The {ident} plugin is operating in test mode. You can use one of <a {cardargs}>many test "
+                "cards</a> to perform a transaction. Be aware: If you use a different card, actual money may be "
+                "transferred. The plugin does not accept payments from test cards outside of test mode, "
+                "though {ident} will allow them to be entered. "
+            ).format(
+                ident=self.verbose_name,
+                cardargs='href="https://learn.quickpay.net/tech-talk/appendixes/test/#credit-card-test-numbers" '
+                'target="_blank"',
+            )
+        )
 
     def execute_payment(self, request: HttpRequest, payment: OrderPayment) -> str:
         client = self._init_client()
