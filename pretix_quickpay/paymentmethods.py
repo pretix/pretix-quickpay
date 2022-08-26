@@ -3,66 +3,71 @@ from django.utils.translation import gettext_lazy as _
 
 from .payment import QuickpayMethod, QuickpaySettingsHolder
 
+creditcard = _("Credit card")
+debitcard = _("Debit card")
+
 payment_methods = [
     {
         "method": "creditcard",
         "type": "other",
-        "public_name": _("Credit card"),
-        "verbose_name": _("Credit card"),
+        "public_name": creditcard,
+        "verbose_name": creditcard,
+        "help_text": "Use this if you want your customers to choose any credit card brand that you have enabled in "
+        "your payment provider's account.",
     },
     {
         "method": "american-express",
         "type": "other",
-        "public_name": _("Credit card: American Express"),
-        "verbose_name": _("Credit card: American Express"),
+        "public_name": f"{creditcard}: American Express",
+        "verbose_name": f"{creditcard}: American Express",
     },
     {
         "method": "dankort",
         "type": "other",
-        "public_name": _("Credit card: Dankort"),
-        "verbose_name": _("Credit card: Dankort"),
+        "public_name": f"{creditcard}: Dankort",
+        "verbose_name": f"{creditcard}: Dankort",
     },
     {
         "method": "diners",
         "type": "other",
-        "public_name": _("Credit card: Diners Club"),
-        "verbose_name": _("Credit card: Diners Club"),
+        "public_name": f"{creditcard}: Diners Club",
+        "verbose_name": f"{creditcard}: Diners Club",
     },
     {
         "method": "jcb",
         "type": "other",
-        "public_name": _("Credit card: JCB"),
-        "verbose_name": _("Credit card: JCB"),
+        "public_name": f"{creditcard}: JCB",
+        "verbose_name": f"{creditcard}: JCB",
     },
     {
         "method": "maestro",
         "type": "other",
-        "public_name": _("Credit card: Maestro"),
-        "verbose_name": _("Credit card: Maestro"),
+        "public_name": f"{creditcard}: Maestro",
+        "verbose_name": f"{creditcard}: Maestro",
     },
     {
         "method": "mastercard",
         "type": "other",
-        "public_name": _("Credit card: Mastercard"),
-        "verbose_name": _("Credit card: Mastercard"),
+        "public_name": f"{creditcard}: Mastercard",
+        "verbose_name": f"{creditcard}: Mastercard",
     },
     {
         "method": "mastercard-debet",  # sic?
         "type": "other",
-        "public_name": _("Debit card: Mastercard"),
-        "verbose_name": _("Debit card: Mastercard"),
+        "public_name": f"{debitcard}: Mastercard",
+        "verbose_name": f"{debitcard}: Mastercard",
     },
     {
         "method": "visa",
         "type": "other",
-        "public_name": _("Credit card: Visa"),
-        "verbose_name": _("Credit card: Visa"),
+        "public_name": f"{creditcard}: Visa",
+        "verbose_name": f"{creditcard}: Visa",
     },
     {
         "method": "visa-electron",
         "type": "other",
-        "public_name": _("Debit card: Visa"),
-        "verbose_name": _("Debit card: Visa"),
+        "public_name": f"{debitcard}: Visa",
+        "verbose_name": f"{debitcard}: Visa",
     },
     {
         "method": "fbg1886",
@@ -189,8 +194,8 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
                         m["verbose_name"],
                     ),
                     help_text=_(
-                        "Needs to be enabled in your payment provider's account first."
-                    ),
+                        "Needs to be enabled in your payment provider's account first. {m_help_text}"
+                    ).format(m_help_text=m.get("help_text", "")),
                     required=False,
                 ),
             )
