@@ -32,7 +32,7 @@ class QuickpaySettingsHolder(BasePaymentProvider):
 
     def __init__(self, event: Event):
         super().__init__(event)
-        self.settings = SettingsSandbox("payment", "quickpay", event)
+        self.settings = SettingsSandbox('payment', self.identifier.split('_')[0], event)
 
     @property
     def settings_form_fields(self):
@@ -72,13 +72,13 @@ class QuickpaySettingsHolder(BasePaymentProvider):
 
 
 class QuickpayMethod(BasePaymentProvider):
-    identifier = ""
+    identifier = "quickpay"
     method = ""
     verbose_name = ""
 
     def __init__(self, event: Event):
         super().__init__(event)
-        self.settings = SettingsSandbox("payment", "quickpay", event)
+        self.settings = SettingsSandbox('payment', self.identifier.split('_')[0], event)
 
     def _init_client(self):
         auth_token = ":{0}".format(self.settings.get("apikey"))
@@ -326,7 +326,7 @@ class QuickpayMethod(BasePaymentProvider):
             payment.info_data = new_payment_info
             payment.save(update_fields=["info"])
             payment.order.log_action(
-                "pretix_quickpay.event",
+                f"pretix_{self.identifier.split('_')[0]}.event",
                 data={"type": "callback", "content": new_payment_info},
             )
             prev_payment_state = current_payment_info.get("state", "")

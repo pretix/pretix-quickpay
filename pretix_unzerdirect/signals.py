@@ -15,4 +15,4 @@ def logentry_display(sender, logentry, **kwargs):
     if logentry.action_type != "pretix_unzerdirect.event":
         return
 
-    return _("Unzerdirect reported an event")
+    return _("Unzer Direct reported an event")
