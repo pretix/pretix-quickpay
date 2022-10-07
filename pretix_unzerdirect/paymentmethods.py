@@ -6,7 +6,7 @@ from pretix_quickpay.paymentmethods import (
 from .payment import UnzerdirectMethod, UnzerdirectSettingsHolder
 
 supported_methods = [
-    "creditcard",
+    # "creditcard", note: disabled so merchants can enable each card as needed
     "mastercard",
     "visa",
     "apple-pay",

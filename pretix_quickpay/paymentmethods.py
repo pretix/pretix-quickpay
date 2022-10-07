@@ -3,71 +3,69 @@ from django.utils.translation import gettext_lazy as _
 
 from .payment import QuickpayMethod, QuickpaySettingsHolder
 
-creditcard = _("Credit card")
-debitcard = _("Debit card")
-
 payment_methods = [
-    {
-        "method": "creditcard",
-        "type": "other",
-        "public_name": creditcard,
-        "verbose_name": creditcard,
-        "help_text": "Use this if you want your customers to choose any credit card brand that you have enabled in "
-        "your payment provider's account.",
-    },
+    # This is disabled to give merchants the ability to choose from all card options below instead of all at once
+    # {
+    #     "method": "creditcard",
+    #     "type": "scheme",
+    #     "public_name": "Creditcard",
+    #     "verbose_name": "Creditcard",
+    #     "help_text": "Use this if you want your customers to choose any credit card brand that you have enabled in "
+    #     "your payment provider's account.",
+    # },
     {
         "method": "american-express",
-        "type": "other",
-        "public_name": f"{creditcard}: American Express",
-        "verbose_name": f"{creditcard}: American Express",
+        "type": "scheme",
+        "public_name": _("American Express Credit"),
+        "verbose_name": _("American Express Credit"),
     },
     {
         "method": "dankort",
-        "type": "other",
-        "public_name": f"{creditcard}: Dankort",
-        "verbose_name": f"{creditcard}: Dankort",
+        "type": "scheme",
+        "public_name": _("Dankort Credit"),
+        "verbose_name": _("Dankort Credit"),
     },
     {
         "method": "diners",
-        "type": "other",
-        "public_name": f"{creditcard}: Diners Club",
-        "verbose_name": f"{creditcard}: Diners Club",
+        "type": "scheme",
+        "public_name": _("Diners Club Credit"),
+        "verbose_name": _("Diners Club Credit"),
     },
     {
         "method": "jcb",
-        "type": "other",
-        "public_name": f"{creditcard}: JCB",
-        "verbose_name": f"{creditcard}: JCB",
+        "type": "scheme",
+        "public_name": _("JCB Credit"),
+        "verbose_name": _("JCB Credit"),
     },
     {
         "method": "maestro",
-        "type": "other",
-        "public_name": f"{creditcard}: Maestro",
-        "verbose_name": f"{creditcard}: Maestro",
+        "type": "scheme",
+        "public_name": _("Maestro Credit"),
+        "verbose_name": _("Maestro Credit"),
     },
     {
         "method": "mastercard",
-        "type": "other",
-        "public_name": f"{creditcard}: Mastercard",
-        "verbose_name": f"{creditcard}: Mastercard",
+        "type": "scheme",
+        "public_name": _("Mastercard Credit"),
+        "verbose_name": _("Mastercard Credit"),
     },
     {
         "method": "mastercard-debet",  # sic?
-        "type": "other",
-        "public_name": f"{debitcard}: Mastercard",
-        "verbose_name": f"{debitcard}: Mastercard",
+        "type": "scheme",
+        "public_name": _("Mastercard Debit"),
+        "verbose_name": _("Mastercard Debit"),
     },
     {
         "method": "visa",
-        "type": "other",
-        "public_name": f"{creditcard}: Visa",
-        "verbose_name": f"{creditcard}: Visa",
+        "type": "scheme",
+        "public_name": _("Visa Credit"),
+        "verbose_name": _("Visa Credit"),
     },
     {
         "method": "visa-electron",
-        "type": "other",
-        "public_name": f"{debitcard}: Visa",
-        "verbose_name": f"{debitcard}: Visa",
+        "type": "scheme",
+        "public_name": _("Visa Debit/Electron"),
+        "verbose_name": _("Visa Debit/Electron"),
     },
     {
         "method": "fbg1886",
