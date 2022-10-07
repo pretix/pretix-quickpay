@@ -45,7 +45,8 @@ class QuickpaySettingsHolder(BasePaymentProvider):
                     validators=(),
                     help_text=_(
                         "Your merchant account's private key, "
-                        "to be found in your payment provider's settings: 'Shop Integration'"
+                        "to be found in your payment provider's settings "
+                        ": 'Merchant' > scroll down to 'Merchant-Settings' and copy the key."
                     ),
                 ),
             ),
@@ -56,8 +57,9 @@ class QuickpaySettingsHolder(BasePaymentProvider):
                     validators=(),
                     help_text=_(
                         "Your API key for an API user, "
-                        "that is configured to have rights to access only '/payments' functionality, "
-                        "to be found in your payment provider's settings: 'Shop Integration'"
+                        "to be found in your payment provider's settings: 'User' where you select the 'System user' "
+                        "that is configured to have rights to access only '/payments' functionality and copy it's key. "
+                        "If you have no such user, please create one with the above mentioned permissions first."
                     ),
                 ),
             ),
