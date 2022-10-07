@@ -214,6 +214,19 @@ class QuickpayMethod(BasePaymentProvider):
     def matching_id(self, payment: OrderPayment):
         return payment.info_data.get("id", None)
 
+    def payment_pending_render(self, request, payment) -> str:
+        if payment.info:
+            payment_info = json.loads(payment.info)
+        else:
+            payment_info = None
+        template = get_template("pretix_quickpay/pending.html")
+        ctx = {
+            "payment_info": payment_info,
+            "payment": payment,
+            "operation": payment_info.get("operations")[-1],
+        }
+        return template.render(ctx)
+
     def payment_control_render(
         self, request: HttpRequest, payment: OrderPayment
     ) -> str:
@@ -305,7 +318,10 @@ class QuickpayMethod(BasePaymentProvider):
         state = payment.info_data.get("state")
         if state == "rejected":
             payment.fail()
-        if state == "processed":
+        elif state == "pending":
+            payment.state = OrderPayment.PAYMENT_STATE_PENDING
+            payment.save(update_fields=["state"])
+        elif state == "processed":
             if payment.info_data.get("balance") == self._decimal_to_int(payment.amount):
                 if payment.info_data.get("test_mode") == payment.order.testmode:
                     payment.confirm()
@@ -330,25 +346,28 @@ class QuickpayMethod(BasePaymentProvider):
         ).hexdigest()
         validated = checksum == request.headers.get("QuickPay-Checksum-Sha256")
         if validated:
-            current_payment_info = payment.info_data
-            payment_id = json.loads(request_body.decode("UTF-8")).get("id")
-            try:
-                client = self._init_client()
-                # get the current info from provider, as we can run into race conditions here
-                new_payment_info = client.get("/payments/%s" % payment_id)
-            except Exception as e:
-                logger.exception("Quickpay Payments error: %s" % e)
-                return
-            # Save newest payment object to info
-            payment.info_data = new_payment_info
-            payment.save(update_fields=["info"])
             payment.order.log_action(
                 f"pretix_{self.identifier.split('_')[0]}.event",
-                data={"type": "callback", "content": new_payment_info},
+                data=json.loads(request.body.decode("utf-8")),
             )
-            prev_payment_state = current_payment_info.get("state", "")
-            new_payment_state = new_payment_info.get("state", "")
-            if new_payment_state != prev_payment_state:
-                self._handle_state_change(payment)
+            self.get_current_payment(payment)
         else:
             logger.warning("Quickpay Callback with invalid checksum: %s", request_body)
+
+    def get_current_payment(self, payment):
+        current_payment_info = payment.info_data
+        payment_id = current_payment_info.get("id")
+        try:
+            client = self._init_client()
+            # get the current info from provider, as we can run into race conditions here
+            new_payment_info = client.get("/payments/%s" % payment_id)
+        except Exception as e:
+            logger.exception("Quickpay Payments error: %s" % e)
+            return
+        # Save newest payment object to info
+        payment.info_data = new_payment_info
+        payment.save(update_fields=["info"])
+        prev_payment_state = current_payment_info.get("state", "")
+        new_payment_state = new_payment_info.get("state", "")
+        if new_payment_state != prev_payment_state:
+            self._handle_state_change(payment)

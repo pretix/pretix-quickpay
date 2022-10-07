@@ -55,9 +55,11 @@ class QuickpayOrderView:
 @method_decorator(csrf_exempt, name="dispatch")
 class ReturnView(QuickpayOrderView, View):
     def post(self, request, *args, **kwargs):
+        self.pprov.get_current_payment(self.payment)
         return self._redirect_to_order()
 
     def get(self, request, *args, **kwargs):
+        self.pprov.get_current_payment(self.payment)
         return self._redirect_to_order()
 
 

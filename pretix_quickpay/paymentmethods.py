@@ -199,7 +199,6 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
             )
         )
 
-    # We do not want the "scheme"-methods listed as a payment-method, since they are covered by the meta methods
     return [settingsholder] + [
         type(
             f'Quickpay{"".join(m["public_name"].split())}',
@@ -217,7 +216,6 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
             },
         )
         for m in payment_methods
-        if m["type"] != "scheme"
     ]
 
 
