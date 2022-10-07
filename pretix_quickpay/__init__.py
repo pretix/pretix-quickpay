@@ -21,6 +21,7 @@ class PluginApp(PluginConfig):
         visible = True
         version = __version__
         category = "PAYMENT"
+        picture = "pretix_quickpay/logo.svg"
         compatibility = "pretix>=2.7.0"
 
     def ready(self):
