@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-07 19:01+0100\n"
+"POT-Creation-Date: 2022-11-08 18:27+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Phin Wolkwitz\n"
 "Language-Team: \n"
@@ -10,3 +10,249 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: pretix_quickpay/__init__.py:16 pretix_quickpay/payment.py:29
+msgid "Quickpay"
+msgstr "Quickpay"
+
+#: pretix_quickpay/__init__.py:17
+msgid "the pretix team"
+msgstr "das pretix Team"
+
+#: pretix_quickpay/__init__.py:19
+msgid ""
+"Use Quickpay as a payment provider, where you can activate various payment "
+"methods for your customers."
+msgstr ""
+"Benutzen Sie Quickpay als Zahlungsanbieter, "
+"bei dem Sie unterschiedliche Zahlungsmethoden für Ihre Kunden aktivieren können."
+
+#: pretix_quickpay/payment.py:44
+msgid "Private Key"
+msgstr "Privater Schlüssel"
+
+#: pretix_quickpay/payment.py:46
+msgid ""
+"Your merchant account's private key, to be found in your payment provider's "
+"settings: 'Merchant' > scroll down to 'Merchant-Settings' and copy the key."
+msgstr ""
+"Der private Schlüssel Ihres Händlerkontos, welchen Sie in den Einstellungen Ihres Zahlungsanbieters finden können: "
+"'Händler' > zum Abschnitt 'Händler-Einstellungen' scrollen und den Schlüssel kopieren"
+
+#: pretix_quickpay/payment.py:55
+msgid "API Key"
+msgstr "API Schlüssel"
+
+#: pretix_quickpay/payment.py:57
+msgid ""
+"Your API key for an API user, to be found in your payment provider's "
+"settings: 'User' where you select the 'System user' that is configured to "
+"have rights to access only '/payments' functionality and copy it's key. If "
+"you have no such user, please create one with the above mentioned "
+"permissions first."
+msgstr ""
+"Ihr API Schlüssel für einen API Benutzer, welcher bei Ihrem Zahlungsanbieter "
+"in den Einstellungen gefunden werden kann: 'Benutzer' anwählen und dann einen 'Systembenutzer' auswählen, "
+"für den Zugriffsrechte für die '/payments' gegeben wurden und dessen Schlüssel kopieren."
+"Wenn Sie einen solchen Systembenutzer noch nicht haben, erstellen Sie bitte zuerst einen mit den oben genannten "
+"Berechtigungen."
+
+#: pretix_quickpay/payment.py:141
+#, python-brace-format
+msgid ""
+"The {ident} plugin is operating in test mode. You can use one of <a "
+"{cardargs}>many test cards</a> to perform a transaction. Be aware: If you "
+"use a different card, actual money may be transferred. The plugin does not "
+"accept payments from test cards outside of test mode, though {ident} will "
+"allow them to be entered. "
+msgstr ""
+"Die {ident} Erweiterung befindet sich im Testmodus. Sie können eine von <a "
+"{cardargs}>vielen Testkarten</a> benutzen um eine Transaktion durchzuführen. Achtung: Wenn Sie "
+"eine andere Karte benutzen, kann echtes Geld fließen. Die Erweiterung akzeptiert keine "
+"Zahlungen von Testkarten außerhalb des Testmodus, auch wenn {ident} erlaubt "
+"diese einzugeben. "
+
+#: pretix_quickpay/payment.py:199 pretix_quickpay/payment.py:282
+msgid ""
+"We had trouble communicating with the payment provider. Please try again and "
+"get in touch with us if this problem persists."
+msgstr ""
+"Wir hatten Probleme den Zahlungsabieter zu erreichen. Bitte versuchen Sie es erneut "
+"und kontaktieren Sie uns, sollte dieses Problem bestehen bleiben."
+
+#: pretix_quickpay/paymentmethods.py:19 pretix_quickpay/paymentmethods.py:20
+msgid "American Express Credit"
+msgstr "American Express Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:25 pretix_quickpay/paymentmethods.py:26
+msgid "Dankort Credit"
+msgstr "Dankort Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:31 pretix_quickpay/paymentmethods.py:32
+msgid "Diners Club Credit"
+msgstr "Diners Club Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:37 pretix_quickpay/paymentmethods.py:38
+msgid "JCB Credit"
+msgstr "JCB Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:43 pretix_quickpay/paymentmethods.py:44
+msgid "Maestro Credit"
+msgstr "Maestro Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:49 pretix_quickpay/paymentmethods.py:50
+msgid "Mastercard Credit"
+msgstr "Mastercard Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:55 pretix_quickpay/paymentmethods.py:56
+msgid "Mastercard Debit"
+msgstr "Mastercard Debitkarte"
+
+#: pretix_quickpay/paymentmethods.py:61 pretix_quickpay/paymentmethods.py:62
+msgid "Visa Credit"
+msgstr "Visa Kreditkarte"
+
+#: pretix_quickpay/paymentmethods.py:67 pretix_quickpay/paymentmethods.py:68
+msgid "Visa Debit/Electron"
+msgstr "Visa Debitkarte/Electron"
+
+#: pretix_quickpay/paymentmethods.py:73 pretix_quickpay/paymentmethods.py:74
+msgid "Forbrugsforeningen af 1886"
+msgstr "Forbrugsforeningen af 1886"
+
+#: pretix_quickpay/paymentmethods.py:79 pretix_quickpay/paymentmethods.py:80
+msgid "Apple Pay"
+msgstr "Apple Pay"
+
+#: pretix_quickpay/paymentmethods.py:85 pretix_quickpay/paymentmethods.py:86
+msgid "Google Pay"
+msgstr "Google Pay"
+
+#: pretix_quickpay/paymentmethods.py:91 pretix_quickpay/paymentmethods.py:92
+msgid "ANYDAY Split"
+msgstr "ANYDAY Split"
+
+#: pretix_quickpay/paymentmethods.py:97 pretix_quickpay/paymentmethods.py:98
+msgid "MobilePay online"
+msgstr "MobilePay online"
+
+#: pretix_quickpay/paymentmethods.py:103 pretix_quickpay/paymentmethods.py:104
+msgid "MobilePay Subscriptions"
+msgstr "MobilePay Subscriptions"
+
+#: pretix_quickpay/paymentmethods.py:109 pretix_quickpay/paymentmethods.py:110
+msgid "PayPal"
+msgstr "PayPal"
+
+#: pretix_quickpay/paymentmethods.py:115 pretix_quickpay/paymentmethods.py:116
+msgid "Sofort"
+msgstr "Sofort"
+
+#: pretix_quickpay/paymentmethods.py:121 pretix_quickpay/paymentmethods.py:122
+msgid "ViaBill"
+msgstr "ViaBill"
+
+#: pretix_quickpay/paymentmethods.py:127 pretix_quickpay/paymentmethods.py:128
+msgid "Resurs Bank"
+msgstr "Resurs Bank"
+
+#: pretix_quickpay/paymentmethods.py:133 pretix_quickpay/paymentmethods.py:134
+msgid "Klarna Payments"
+msgstr "Klarna Payments"
+
+#: pretix_quickpay/paymentmethods.py:139 pretix_quickpay/paymentmethods.py:140
+msgid "Bitcoin through Coinify"
+msgstr "Bitcoin via Coinify"
+
+#: pretix_quickpay/paymentmethods.py:145 pretix_quickpay/paymentmethods.py:146
+msgid "Swish"
+msgstr "Swish"
+
+#: pretix_quickpay/paymentmethods.py:151 pretix_quickpay/paymentmethods.py:152
+msgid "Trustly"
+msgstr "Trustly"
+
+#: pretix_quickpay/paymentmethods.py:157 pretix_quickpay/paymentmethods.py:158
+msgid "iDEAL"
+msgstr "iDEAL"
+
+#: pretix_quickpay/paymentmethods.py:163 pretix_quickpay/paymentmethods.py:164
+msgid "Vipps"
+msgstr "Vipps"
+
+#: pretix_quickpay/paymentmethods.py:169 pretix_quickpay/paymentmethods.py:170
+msgid "Paysafecard"
+msgstr "Paysafecard"
+
+#: pretix_quickpay/paymentmethods.py:175 pretix_quickpay/paymentmethods.py:176
+msgid "Unzer Pay Later Invoice"
+msgstr "Unzer Pay Later Rechnung"
+
+#: pretix_quickpay/paymentmethods.py:195
+#, python-brace-format
+msgid ""
+"Needs to be enabled in your payment provider's account first. {m_help_text}"
+msgstr ""
+"Muss erst im Account Ihres Zahlungsanbieters freigeschaltet werden. {m_help_text}"
+
+#: pretix_quickpay/paymentmethods.py:210
+#, python-brace-format
+msgid "{payment_method} via {payment_provider}"
+msgstr "{payment_method} via {payment_provider}"
+
+#: pretix_quickpay/signals.py:18
+msgid "Quickpay reported an event"
+msgstr "Quickpay hat ein Ereignis gemeldet"
+
+#: pretix_quickpay/templates/pretix_quickpay/checkout_payment_confirm.html:3
+#: pretix_quickpay/templates/pretix_quickpay/checkout_payment_form.html:3
+msgid ""
+"After you submitted your order, we will redirect you to the payment service "
+"provider to complete your payment. You will then be redirected back here to "
+"get your tickets."
+msgstr ""
+"Nachdem Sie Ihre Bestellung abgeschickt haben, werden wir Sie zum Abschluss der Zahlung "
+"zu Ihrem gewählten Zahlungsanbieter weiterleiten. Danach werden Sie zurück zu uns weitergeleitet um "
+"Ihre Tickets zu erhalten."
+
+#: pretix_quickpay/templates/pretix_quickpay/control.html:6
+msgid "Payment ID"
+msgstr "Zahlungs-ID"
+
+#: pretix_quickpay/templates/pretix_quickpay/control.html:10
+msgid "Link"
+msgstr "Link"
+
+#: pretix_quickpay/templates/pretix_quickpay/control.html:14
+msgid "State"
+msgstr "Status"
+
+#: pretix_quickpay/templates/pretix_quickpay/control.html:19
+msgid "Operation"
+msgstr "Vorgang"
+
+#: pretix_quickpay/templates/pretix_quickpay/control.html:24
+msgid "Test"
+msgstr "Test"
+
+#: pretix_quickpay/templates/pretix_quickpay/control.html:28
+msgid "Last update"
+msgstr "Letztes Update"
+
+#: pretix_quickpay/templates/pretix_quickpay/pending.html:5
+msgid ""
+"We're waiting for an answer from the payment provider regarding your "
+"payment. Please contact us if this takes more than a few days."
+msgstr ""
+"Wir warten auf eine Antwort des Zahlungsanbieters bezüglich Ihrer "
+"Zahlung. Bitte nehmen Sie Kontakt zu uns auf, falls dies mehr als ein paar Tage dauert."
+
+#: pretix_quickpay/templates/pretix_quickpay/pending.html:10
+msgid ""
+"The payment transaction could not be completed for the following reason:"
+msgstr ""
+"Die Zahlungstransaktion konnte aus folgendem Grund nicht abgeschlossen werden:"
+
+#: pretix_quickpay/templates/pretix_quickpay/pending.html:17
+msgid "Unknown reason"
+msgstr "Unbekannter Grund"

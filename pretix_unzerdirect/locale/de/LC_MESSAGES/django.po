@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-07 19:01+0100\n"
+"POT-Creation-Date: 2022-11-08 18:27+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Phin Wolkwitz\n"
 "Language-Team: \n"
@@ -10,3 +10,23 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: pretix_unzerdirect/__init__.py:16 pretix_unzerdirect/payment.py:14
+msgid "Unzer Direct"
+msgstr "Unzer Direct"
+
+#: pretix_unzerdirect/__init__.py:17
+msgid "the pretix team"
+msgstr "das pretix Team"
+
+#: pretix_unzerdirect/__init__.py:19
+msgid ""
+"Use Unzer Direct as a payment provider, where you can activate various "
+"payment methods for your customers."
+msgstr ""
+"Benutzen Sie Unzer Direct als Zahlungsanbieter, "
+"bei dem Sie unterschiedliche Zahlungsmethoden für Ihre Kunden aktivieren können."
+
+#: pretix_unzerdirect/signals.py:18
+msgid "Unzer Direct reported an event"
+msgstr "Unzer Direct hat ein Ereignis gemeldet"
