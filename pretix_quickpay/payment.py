@@ -42,11 +42,10 @@ class QuickpaySettingsHolder(BasePaymentProvider):
                 "privatekey",
                 SecretKeySettingsField(
                     label=_("Private Key"),
-                    validators=(),
                     help_text=_(
                         "Your merchant account's private key, "
-                        "to be found in your payment provider's settings "
-                        ": 'Merchant' > scroll down to 'Merchant-Settings' and copy the key."
+                        "to be found in your payment provider's settings: "
+                        "'Merchant' > scroll down to 'Merchant-Settings' and copy the key."
                     ),
                 ),
             ),
@@ -54,7 +53,6 @@ class QuickpaySettingsHolder(BasePaymentProvider):
                 "apikey",
                 SecretKeySettingsField(
                     label=_("API Key"),
-                    validators=(),
                     help_text=_(
                         "Your API key for an API user, "
                         "to be found in your payment provider's settings: 'User' where you select the 'System user' "
