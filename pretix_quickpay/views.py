@@ -1,8 +1,8 @@
 import hashlib
-from cached_property import cached_property
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from pretix.base.models import Order
