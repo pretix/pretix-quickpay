@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from pretix.multidomain import event_url
 
 from .views import CallbackView, ReturnView
@@ -6,7 +6,7 @@ from .views import CallbackView, ReturnView
 
 def get_event_patterns(brand):
     return [
-        url(
+        re_path(
             r"^(?P<payment_provider>{})/".format(brand),
             include(
                 [
