@@ -8,6 +8,7 @@ except ImportError:
 
 
 class PluginApp(PluginConfig):
+    default = True
     name = "pretix_quickpay"
     verbose_name = "Quickpay payments for pretix"
 
