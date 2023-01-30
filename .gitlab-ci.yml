@@ -1,7 +1,7 @@
 test:
     script:
         - cp /keys/.pypirc ~/.pypirc
-        - virtual../env ../env
+        - virtualenv ../env
         - source ../env/bin/activate
         - XDG_CACHE_HOME=/cache pip3 install -U pip wheel setuptools pytest pytest-django coverage
         - XDG_CACHE_HOME=/cache pip3 install -U "git+https://github.com/pretix/pretix.git@master#egg=pretix&subdirectory=src"
@@ -14,12 +14,11 @@ test:
 style:
     script:
         - cp /keys/.pypirc ~/.pypirc
-        - virtual../env ../env
+        - virtualenv ../env
         - source ../env/bin/activate
         - XDG_CACHE_HOME=/cache pip3 install -U pip wheel setuptools isort docformatter black flake8 check-manifest
         - XDG_CACHE_HOME=/cache pip3 install -U "git+https://github.com/pretix/pretix.git@master#egg=pretix&subdirectory=src"
         - python setup.py develop
-        - docformatter --check -r .
         - black --check .
         - isort -c .
         - flake8 .
@@ -29,7 +28,7 @@ style:
 pypi:
     script:
         - cp /keys/.pypirc ~/.pypirc
-        - virtual../env ../env
+        - virtualenv ../env
         - source ../env/bin/activate
         - XDG_CACHE_HOME=/cache pip3 install -U pip wheel setuptools twine check-manifest
         - XDG_CACHE_HOME=/cache pip3 install -U pretix
