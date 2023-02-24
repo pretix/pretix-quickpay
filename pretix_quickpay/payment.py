@@ -212,6 +212,9 @@ class QuickpayMethod(BasePaymentProvider):
     def matching_id(self, payment: OrderPayment):
         return payment.info_data.get("id", None)
 
+    def refund_matching_id(self, refund: OrderRefund):
+        return refund.info_data.get("id", None)
+
     def payment_pending_render(self, request, payment) -> str:
         if payment.info:
             payment_info = json.loads(payment.info)
