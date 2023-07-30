@@ -221,10 +221,11 @@ class QuickpayMethod(BasePaymentProvider):
         else:
             payment_info = None
         template = get_template("pretix_quickpay/pending.html")
+        operations = payment_info.get("operations", [])
         ctx = {
             "payment_info": payment_info,
             "payment": payment,
-            "operation": payment_info.get("operations")[-1],
+            "operation": operations[-1] if len(operations) > 0 else None,
         }
         return template.render(ctx)
 
