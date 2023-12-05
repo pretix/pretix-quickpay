@@ -216,14 +216,10 @@ class QuickpayMethod(BasePaymentProvider):
         return refund.info_data.get("id", None)
 
     def payment_pending_render(self, request, payment) -> str:
-        if payment.info:
-            payment_info = json.loads(payment.info)
-        else:
-            payment_info = None
         template = get_template("pretix_quickpay/pending.html")
-        operations = payment_info.get("operations", [])
+        operations = payment.info_data.get("operations", [])
         ctx = {
-            "payment_info": payment_info,
+            "payment_info": payment.info_data,
             "payment": payment,
             "operation": operations[-1] if len(operations) > 0 else None,
         }
