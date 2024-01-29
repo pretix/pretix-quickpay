@@ -186,9 +186,11 @@ def get_payment_method_classes(brand, payment_methods, baseclass, settingsholder
                 "method_{}".format(m["method"]),
                 forms.BooleanField(
                     label="{} {}".format(
-                        '<span class="fa fa-credit-card"></span>'
-                        if m["type"] in ["scheme", "meta"]
-                        else "",
+                        (
+                            '<span class="fa fa-credit-card"></span>'
+                            if m["type"] in ["scheme", "meta"]
+                            else ""
+                        ),
                         m["verbose_name"],
                     ),
                     help_text=_(
