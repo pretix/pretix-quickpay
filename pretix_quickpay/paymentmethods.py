@@ -154,7 +154,7 @@ payment_methods = [
     {
         "method": "ideal",
         "type": "other",
-        "public_name": _("iDEAL"),
+        "public_name": _("iDEAL | Wero"),
         "verbose_name": _("iDEAL"),
     },
     {
